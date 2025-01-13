@@ -11,6 +11,7 @@ class APP{
         this._side_bar_color = this._header_color;
         this._side_bar_background_color = this._header_background_color;
         this._table_header_height = 40;
+        this._table_toolbar_button_width = 200;
         this.side_bar_items = [
             {
                 icon: 'dashboard',
@@ -29,6 +30,40 @@ class APP{
                         this.Users()
                     ])
                     
+                }
+            },
+            {
+                icon: 'park',
+                name:'Trunks',
+                callback: () => {
+                    this.content.querySelector('#app-body').InnerHTML('').Append([
+                        this.DataTable({
+                            columns: [
+                                {name: 'Name', width: 20},
+                                {name: 'Type', width: 20},
+                                {name: 'Host', width: 20},
+                                {name: 'Port', width: 20},
+                                {name: 'Actions', width: 20},
+                            ]
+                        })
+                    ])
+                }
+            },
+            {
+                icon: 'tag',
+                name:'Extensions',
+                callback: () => {
+                    this.content.querySelector('#app-body').InnerHTML('').Append([
+                        this.DataTable({
+                            columns: [
+                                {name: 'Username', width: 20},
+                                {name: 'Password', width: 20},
+                                {name: 'Email', width: 20},
+                                {name: 'Role', width: 20},
+                                {name: 'Actions', width: 20},
+                            ]
+                        })
+                    ])
                 }
             }
         ]
@@ -143,22 +178,26 @@ class APP{
             items.map((item) => {
                 return document.createElement('div').Style({
                     width: '100%',
-                    height: '50px',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    cursor: 'pointer'
+                    height: `${this._header_height}px`,
+                    display: 'block',
+                    cursor: 'pointer',
+                    position:'relative',
                 }).Append([
                     document.createElement('i').Classes(['material-icons']).InnerHTML(item.icon).Style({
                         float: 'left',
                         marginLeft: '10px',
                         height: '100%',
+                        lineHeight: `${this._header_height}px`,
+                        display:'block',
                     }),
                     document.createElement('span').InnerHTML(item.name).Style({
                         height: '100%',
                         position:'relative',
                         width:'100%',
                         textAlign:'center', 
+                        position:'absolute',
+                        lineHeight: `${this._header_height}px`,
+                        display:'block',
                     }).on('click', () => {
                         item.callback()
                     })
@@ -216,8 +255,47 @@ class APP{
                 width:'100%',
                 height: `${this._table_header_height}px`,
                 display:'block',
+                position:'relative',
+                float:'left',
             }).Append([
-
+                //add button
+                document.createElement('div').Style({
+                    width: `${this._table_toolbar_button_width}px`,
+                    height: `calc(${this._table_header_height}px - 10px)`,
+                    display: 'block',
+                    textAlign: 'center',
+                    lineHeight: `${this._table_header_height}px`,
+                    marginLeft: '5px',
+                    marginTop: '5px',
+                    cursor: 'pointer',
+                    position:'relative',
+                    float:'left',
+                    backgroundColor: 'blue',
+                    borderRadius: '5px',
+                    color: 'white',
+                }).Append([
+                    //icon 
+                    document.createElement('i').Classes(['material-icons']).InnerHTML('add').Style({
+                        float: 'left',
+                        margin:'0px',
+                        marginLeft: '10px',
+                        height: '100%',
+                        width:`${this._table_header_height}px`,
+                        lineHeight: `${this._table_header_height - 10}px`,
+                        display:'block',
+                    }),
+                    //text
+                    document.createElement('span').InnerHTML('Add').Style({
+                        height: '100%',
+                        float:'left',
+                        width:'100%',
+                        textAlign:'center', 
+                        position:'absolute',
+                        display:'block',
+                        lineHeight: `${this._table_header_height - 10}px`,
+                        margin:'0px',
+                    })
+                ])
             ]),
             document.createElement('div').Style({
                 width: '100%',
