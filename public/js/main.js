@@ -4,6 +4,34 @@ import api from './api.js';
 class APP{
     constructor(){
         this.api = api;
+        this._header_height = 50;
+        this._header_background_color = 'black';
+        this._header_color = 'white';
+        this._side_bar_width = 250;
+        this._side_bar_color = this._header_color;
+        this._side_bar_background_color = this._header_background_color;
+        this.side_bar_items = [
+            {
+                icon: 'dashboard',
+                name: 'Dashboard',
+                callback: () => {
+                    this.content.querySelector('#app-body').InnerHTML('').Append([
+                        this.Dashboard()
+                    ])
+                }
+            },
+            {
+                icon: 'groups',
+                name:'Users',
+                callback: () => {
+                    this.content.querySelector('#app-body').InnerHTML('').Append([
+                        this.Users()
+                    ])
+                }
+            }
+        ]
+
+
         this.init_dom();
         this.update()
     }
@@ -67,13 +95,16 @@ class APP{
         document.body.Append([this.content]).Style({
             margin:'0',
             padding:'0', 
+            width:'100%',
+            height:'100%',
         })
     }
 
     update(){
         this.content.InnerHTML('').Append([
             this.AppHeader(),
-            this.AppBody()
+            this.AppBody(),
+            this.AppSideBar(this.side_bar_items)
         ])
     }
 
@@ -84,33 +115,92 @@ class APP{
         })
         header.Style({
             width: '100%',
-            height: '65px',
-            backgroundColor: 'black',
-            color: 'white',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
+            height: `${this._header_height}px`,
+            backgroundColor:  this._header_background_color,
+            color: this._header_color,
+            display:'block',
+            textAlign:'center',
+            lineHeight: `${this._header_height}px`, 
         })
-        header.InnerHTML('VOIP')
+        header.InnerHTML('FlowPBX')
         return header
     }
 
+    AppSideBar(items){
+        return document.createElement('div').SetAttributes({
+            id: 'app-sidebar'
+        }).Style({
+            width: `${this._side_bar_width}px`,
+            height: `calc(100% - ${this._header_height}px)`,
+            backgroundColor: this._side_bar_background_color,
+            color: this._side_bar_color,
+            display:'block',
+            position:'fixed',
+            float:'left',
+        }).Append(
+            items.map((item) => {
+                return document.createElement('div').Style({
+                    width: '100%',
+                    height: '50px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    cursor: 'pointer'
+                }).Append([
+                    document.createElement('i').Classes(['material-icons']).InnerHTML(item.icon).Style({
+                        float: 'left',
+                        marginLeft: '10px',
+                        height: '100%',
+                    }),
+                    document.createElement('span').InnerHTML(item.name).Style({
+                        height: '100%',
+                        position:'relative',
+                        width:'100%',
+                        textAlign:'center', 
+                    }).on('click', () => {
+                        item.callback()
+                    })
+                ])
+            })  
+        )
+    }
+
     AppBody(){
-        let body = document.createElement('div')
-        body.SetAttributes({
+        let body = document.createElement('div').SetAttributes({
             id: 'app-body'
-        })
-        body.Style({
-            width: '100%',
-            height: 'calc(100% - 100px)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
+        }).Style({
+            width: (window.innerWidth < 700) ? '100%' : `calc(100% - ${this._side_bar_width}px)`,
+            marginLeft: (window.innerWidth < 700) ? '0' : `${this._side_bar_width}px`,
+            height: '100%',
+            display: 'block',
+            float: 'left',
         })
         //body.Append([
         //    this.LoginForm()
         //])
         return body
+    }
+
+    //views
+
+    Dashboard(){
+        let dashboard = document.createElement('div')
+        dashboard.Style({
+            width: '100%',
+            height: '100%',
+        })
+        dashboard.InnerHTML('Dashboard')
+        return dashboard
+    }
+
+    Users(){
+        let users = document.createElement('div')
+        users.Style({
+            width: '100%',
+            height: '100%',
+        })
+        users.InnerHTML('Users')
+        return users
     }
 
 }

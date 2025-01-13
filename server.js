@@ -9,16 +9,6 @@ import nedb         from 'nedb';
 import cookieParser from 'cookie-parser';
 import fs           from 'fs';
 
-const DB = {
-    users:              new nedb({ filename: 'DB/users.db', autoload: true }),
-    trunks:             new nedb({ filename: 'DB/trunks.db', autoload: true }),
-    routes:             new nedb({ filename: 'DB/routes.db', autoload: true }),
-    calls:              new nedb({ filename: 'DB/calls.db', autoload: true }),
-    msg_stack:          new nedb({ filename: 'DB/msg_stack.db', autoload: true }),
-}
-
-
-
 class FlowPBX {
     constructor(){
         this.init_express([
@@ -37,10 +27,9 @@ class FlowPBX {
                 }
             },
         ]);    
-
+        
+        this.init_DB();
         this.init_VOIP();
-
-
         this.http_io.on('connection', (socket) => {
             console.log('a user connected');
             socket.on('disconnect', () => {
@@ -76,6 +65,16 @@ class FlowPBX {
         this.httpServer.listen(80, () => {
             console.log('HTTP Server running on port 80');
         });
+    }
+
+    init_DB(){
+        this.DB = {
+            users:              new nedb({ filename: 'DB/users.db', autoload: true }),
+            trunks:             new nedb({ filename: 'DB/trunks.db', autoload: true }),
+            routes:             new nedb({ filename: 'DB/routes.db', autoload: true }),
+            calls:              new nedb({ filename: 'DB/calls.db', autoload: true }),
+            msg_stack:          new nedb({ filename: 'DB/msg_stack.db', autoload: true }),
+        }
     }
 
     init_VOIP(){
