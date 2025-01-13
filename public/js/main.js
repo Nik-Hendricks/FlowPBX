@@ -10,6 +10,7 @@ class APP{
         this._side_bar_width = 250;
         this._side_bar_color = this._header_color;
         this._side_bar_background_color = this._header_background_color;
+        this._table_header_height = 40;
         this.side_bar_items = [
             {
                 icon: 'dashboard',
@@ -27,6 +28,7 @@ class APP{
                     this.content.querySelector('#app-body').InnerHTML('').Append([
                         this.Users()
                     ])
+                    
                 }
             }
         ]
@@ -194,15 +196,57 @@ class APP{
     }
 
     Users(){
-        let users = document.createElement('div')
-        users.Style({
+        return this.DataTable({
+            columns: [
+                {name: 'Username', width: 20},
+                {name: 'Password', width: 20},
+                {name: 'Email', width: 20},
+                {name: 'Role', width: 20},
+                {name: 'Actions', width: 20},
+            ]
+        })
+    }
+
+    DataTable(props){
+        let table = document.createElement('div').Style({
             width: '100%',
             height: '100%',
-        })
-        users.InnerHTML('Users')
-        return users
+        }).Append([
+            document.createElement('div').Style({
+                width:'100%',
+                height: `${this._table_header_height}px`,
+                display:'block',
+            }).Append([
+
+            ]),
+            document.createElement('div').Style({
+                width: '100%',
+                height: `${this._table_header_height}px`,
+                display: 'block',
+                alignItems: 'center',
+            }).SetAttributes({id: 'table-header'}).Append([
+                ...props.columns.map((column) => {
+                    return document.createElement('div').Style({
+                        width: `${column.width}%`,
+                        height: '100%',
+                        display: 'block',
+                        textAlign: 'center',
+                        alignItems: 'center',
+                        float: 'left',
+                        lineHeight: `${this._table_header_height}px`,
+                    }).InnerHTML(column.name)
+                })
+            ]),
+            document.createElement('div').Style({
+                width: '100%',
+                height: 'calc(100% - 50px)',
+                display: 'block',
+            }).SetAttributes({id: 'table-body'})
+        ])
+
+        return table
     }
 
 }
 
-window.APP = new APP();
+window.app = new APP();

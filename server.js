@@ -26,6 +26,15 @@ class FlowPBX {
                     res.sendFile(__dirname + '/public/js/' + req.params.file);
                 }
             },
+            {
+                type: 'POST',
+                path : '/api/get',
+                callback: (req, res) => {
+                    this.DB[req.body.table].find(req.body.query, (err, docs) => {
+                        res.send(docs)
+                    })
+                }
+            }
         ]);    
         
         this.init_DB();
