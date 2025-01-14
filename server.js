@@ -11,32 +11,7 @@ import fs           from 'fs';
 
 class FlowPBX {
     constructor(){
-        this.init_express([
-            {
-                type: 'GET',
-                path: '/',
-                callback: (req, res) => {
-                    res.sendFile(__dirname + '/public/index.html');
-                }
-            },
-            {
-                type: 'GET',
-                path: '/js/:file',
-                callback: (req, res) => {
-                    res.sendFile(__dirname + '/public/js/' + req.params.file);
-                }
-            },
-            {
-                type: 'POST',
-                path : '/api/get',
-                callback: (req, res) => {
-                    this.DB[req.body.table].find(req.body.query, (err, docs) => {
-                        res.send(docs)
-                    })
-                }
-            }
-        ]);    
-        
+        this.init_express();
         this.init_DB();
         this.init_VOIP();
         this.http_io.on('connection', (socket) => {
@@ -57,17 +32,19 @@ class FlowPBX {
         app.use(express.json({limit: '50mb'}));
         app.use(cookieParser());
 
-        for(var event in express_events){
-            if(express_events[event].type == 'GET'){
-                app.get(express_events[event].path, (req, res) => {
-                    express_events[event].callback(req, res)
-                });
-            }else if(express_events[event].type == 'POST'){
-                app.post(express_events[event].path, (req, res) => {
-                    express_events[event].callback(req, res)
-                });
-            }
-        }
+        app.post('/api/get', (req, res) => {
+            console.log('GET DATA')
+            this.DB[req.body.table].find(req.body.query, (err, docs) => {
+                res.send(docs)
+            })
+        })
+
+        api.post('/api/new', (req, res) => {
+            console.log('NEW DATA')
+            this.DB[req.body.table].insert(req.body.data, (err, docs) => {
+                res.send(docs)
+            })
+        })
 
         this.httpServer = httpServer;
         this.http_io = new Server(this.httpServer);
@@ -113,6 +90,11 @@ class FlowPBX {
             }
         })
     }
+
+    Extension(){
+
+    }
+
         
 }
 

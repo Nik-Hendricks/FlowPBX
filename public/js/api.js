@@ -1,22 +1,43 @@
 const api = {
     //props {table: string, query: object}
     get_data: async (props) => {
-        fetch('/api/get', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(props)
+        return new Promise(resolve => {
+            console.log('GET DATA')
+            fetch('/api/get', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    table: props.table,
+                    query: props.query
+                })
+            }).then(response => response.json()).then(data => {
+                resolve(data);
+            });
         })
     },
 
-    DataManager: () => {
-        return {
-            users: window.app.api.get_data({table: 'users', query: {}}),
-            roles: window.app.api.get_data({table: 'roles', query: {}}),
-            routes: window.app.api.get_data({table: 'routes', query: {}}),
-        }
-    }
+
+    //props {table: string, data: object, query: object}
+    set_data: async (props) => {
+        return new Promise(resolve => {
+            console.log('SET DATA')
+            fetch('/api/set', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    table: props.table,
+                    data: props.data,
+                    query: props.query
+                })
+            }).then(response => response.json()).then(data => {
+                resolve(data);
+            });
+        })
+    },
 };
 
 export default api;
