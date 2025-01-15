@@ -34,16 +34,38 @@ class FlowPBX {
 
         app.post('/api/get', (req, res) => {
             console.log('GET DATA')
-            this.DB[req.body.table].find(req.body.query, (err, docs) => {
-                res.send(docs)
+            let d = this.get_data(req.body.table, req.body.query).then(d => {
+                res.send(d)
             })
         })
 
-        api.post('/api/new', (req, res) => {
-            console.log('NEW DATA')
-            this.DB[req.body.table].insert(req.body.data, (err, docs) => {
-                res.send(docs)
-            })
+        app.post('/api/set', (req, res) => {
+            console.log('SET DATA')
+            //find and check if the data exists
+            let table = this.DB[req.body.table];
+            let data = req.body.data;
+            let id = data._id;
+            let query = req.body.query;
+            
+            //future we will check auth key here passed in data and then remove it.
+            
+            if(id !== undefined){
+                table.findOne({ _id: Number(id) }, (err, doc) => {
+                    if(doc !== null){
+                        table.update({ _id: Number(id) }, { $set: {...data} }, query, (err, numReplaced) => {
+                            res.send({status:'updated'})
+                        })
+                    }else{
+                        table.insert(data, (err, newDoc) => {
+                            res.send({status:'inserted'})
+                        })
+                    }
+                })
+            }else{
+                table.insert(data, (err, newDoc) => {
+                    res.send({status:'inserted'})
+                })
+            }
         })
 
         this.httpServer = httpServer;
@@ -51,6 +73,14 @@ class FlowPBX {
         this.httpServer.listen(80, () => {
             console.log('HTTP Server running on port 80');
         });
+    }
+
+    get_data(table, query){
+        return new Promise(resolve => {
+            this.DB[table].find(query, (err, docs) => {
+                resolve(docs);
+            })
+        })
     }
 
     init_DB(){
@@ -61,6 +91,24 @@ class FlowPBX {
             calls:              new nedb({ filename: 'DB/calls.db', autoload: true }),
             msg_stack:          new nedb({ filename: 'DB/msg_stack.db', autoload: true }),
         }
+    }
+
+    update_voip_users(){
+        this.get_data('users', {}).then(d => {
+            d.forEach((user) => {
+                if(user.type == 'trunk'){
+                    this.VOIP.addTrunk({
+                        name:user.name,
+                        type:user.trunk_type,
+                        username:user.username,
+                        password:user.password,
+                        ip:user.ip,
+                        port:user.port,
+                        callId:user.callId
+                    })
+                }
+            })
+        })
     }
 
     init_VOIP(){
@@ -90,11 +138,6 @@ class FlowPBX {
             }
         })
     }
-
-    Extension(){
-
-    }
-
         
 }
 

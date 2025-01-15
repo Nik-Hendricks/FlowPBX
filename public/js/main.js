@@ -36,6 +36,16 @@ class APP{
                             this.Extensions()
                         ])
                     }
+                },
+                {
+                    //trunks
+                    icon: 'phone',
+                    name:'Trunks',
+                    callback: () => {
+                        this.content.querySelector('#app-body').InnerHTML('').Append([
+                            this.Trunks()
+                        ])
+                    }
                 }
             ]
 
@@ -240,24 +250,61 @@ class APP{
                 })
             ]).on('click', () => {
                 (async () => {
-                    this.Prompt({
-                        title: 'Add Extension',
-                        inputs: [
-                            {value: 'type', key_name: 'type', type: 'select', options: ['User', 'Trunk', 'Route']},
-                            {value: 'Extension', key_name: 'extension'},
-                            {value: 'Username', key_name: 'username'},
-                            {value: 'Password', key_name: 'password'},
-                        ],
-                        callback: async (props) => {
-                            let r = await this.api.set_data({table: 'users', data: {username: props.username, password: props.password}})
-                            console.log(r)
-                        }
-                    })
-                    //let r = await this.api.set_data({table: 'users', data: {username: 'test', password: 'test', email: 'test', role: 'test'}})
-                    //console.log(r)
+                    let p = await this.UserPrompt()
                 })()
             })
         ])
+    }
+
+
+    PromptTypeInput(props){
+        return {value: props.value, placeholder: 'Type', key_name: 'type', type: 'select', options: ['User', 'Trunk', 'Route'], on_change: (e) => {
+            let v = e.target.parentElement._get_values()
+            e.target.parentElement._remove()
+            if(e.target.value == 'Trunk'){
+                this.TrunkPrompt(v)
+            }else if(e.target.value == 'User'){
+                this.UserPrompt(v)
+            }
+        }}
+    }
+
+    UserPrompt(props){
+        props = props || {}
+        console.log(props)
+        return this.Prompt({
+            title: 'Add User',
+            inputs: [
+                this.PromptTypeInput({value: props.type}),
+                {value: props.extension, placeholder: 'Extension', key_name: 'extension'},
+                {value: props.username, placeholder: 'Username', key_name: 'username'},
+                {value: props.password, placeholder: 'Password', key_name: 'password'},
+            ],
+            callback: async (props) => {
+                let r = await this.api.set_data({table: 'users', data: props})
+                console.log(r)
+            }
+        })
+    }
+
+    TrunkPrompt(props){
+        props = props || {}
+        console.log(props)
+        return this.Prompt({
+            title: 'Add Trunk',
+            inputs: [
+                this.PromptTypeInput({value: props.type}),
+                {value: props.trunk_name, placeholder: 'Trunk Name', key_name: 'trunk_name'},
+                {value: props.username, placeholder: 'Username', key_name: 'username'},
+                {value: props.password, placeholder: 'Password', key_name: 'password'},
+                {value: props.ip, placeholder: 'IP', key_name: 'ip'},
+                {value: props.port, placeholder: 'Port', key_name: 'port'},
+            ],
+            callback: async (props) => {
+                let r = await this.api.set_data({table: 'users', data: props})
+                console.log(r)
+            }
+        })
     }
 
     //views
@@ -273,15 +320,35 @@ class APP{
     }
 
     Extensions(){
-        let data = this.DataManager.users;
+        let data = this.DataManager.users.filter((user) => {
+            return user.type.toLowerCase() == 'user'
+        })
         return this.DataTable({
             data: data,
             toolbar: this.Toolbar1(),
             columns: [
-                {name: 'Extension'},
-                {name: 'Type'},
-                {name: 'Username'},
-                {name: 'Password'},
+                {name: 'Extension', key_name: 'extension'},
+                {name: 'Type', key_name: 'type'},
+                {name: 'Username', key_name: 'username'},
+                {name: 'Password', key_name: 'password'},
+            ]
+        })
+    }
+
+    Trunks(){
+        let data = this.DataManager.users.filter((user) => {
+            return user.type.toLowerCase() == 'trunk'
+        })
+        return this.DataTable({
+            data: data,
+            toolbar: this.Toolbar1(),
+            columns: [
+                {name: 'Trunk Name', key_name: 'trunk_name'},
+                {name: 'Type', key_name: 'type'},
+                {name: 'Username', key_name: 'username'},
+                {name: 'Password', key_name: 'password'},
+                {name: 'IP', key_name: 'ip'},
+                {name: 'Port', key_name: 'port'},
             ]
         })
     }
@@ -332,10 +399,10 @@ class APP{
         ])
 
         for(var row of props.data){
-            row = Object.keys(row).reduce((acc, key) => {
-                acc[key.toLowerCase()] = row[key]
-                return acc
-            }, {})
+            //row = Object.keys(row).reduce((acc, key) => {
+            //    acc[key.toLowerCase()] = row[key]
+            //    return acc
+            //}, {})
             let row_el = document.createElement('div').Style({
                 width: '100%',
                 height: `${this._table_header_height}px`,
@@ -344,7 +411,7 @@ class APP{
                 float: 'left',
             }).Append(
                 props.columns.map((column) => {
-                    let c_name = column.name.toLowerCase()
+                    let c_name = column.key_name.toLowerCase()
                     return document.createElement('div').Style({
                         width: `calc(100% / ${props.columns.length})`,
                         height: '100%',
@@ -415,17 +482,7 @@ class APP{
             color: 'white',
             borderRadius: '5px',
         }).InnerHTML('Submit').on('click', () => {
-            //select text inputs and password inputs
-            let values = {}
-            Object.entries(prompt.querySelectorAll('input[type="text"], input[type="password"], select')).map((entry) => {
-                return entry[1]
-            }).forEach((input) => {
-                console.log(input.getAttribute('key_name'))
-                console.log(input.value)
-                values[input.getAttribute('key_name')] = input.value
-            })
-            console.log(values)
-            props.callback(values)
+            props.callback(prompt._get_values())
             prompt._remove()
         })
 
@@ -433,6 +490,7 @@ class APP{
             title,
             ...props.inputs.map((input) => {
                 if(input.type == 'select'){
+                    console.log(input)
                     let i = document.createElement('select').Style({
                         width: '100%',
                         height: '40px',
@@ -440,14 +498,19 @@ class APP{
                         marginTop: '10px',
                         padding: '5px',
                         boxSizing: 'border-box',
-                    }).SetAttributes({placeholder: input.value, key_name: input.key_name}).Append([
-                        document.createElement('option').InnerHTML(`Select ${input.value}`),
+                    }).SetAttributes({value: input.value || '', placeholder: input.placeholder, key_name: input.key_name}).Append([
+                        document.createElement('option').InnerHTML(input.value || 'Select Type'),
                         ...input.options.map((option) => {
                             return document.createElement('option').InnerHTML(option)
                         })
-                    ])
+                    ]).on('change', (e) => {
+                        if(input.on_change !== undefined){
+                            input.on_change(e)
+                        }
+                    })
                     return i
                 }else{
+                    console.log(input)
                     let i = document.createElement('input').Style({
                         width: '100%',
                         height: '40px',
@@ -455,7 +518,12 @@ class APP{
                         marginTop: '10px',
                         padding: '5px',
                         boxSizing: 'border-box',
-                    }).SetAttributes({placeholder: input.value, type: input.type || 'text', key_name: input.key_name})  
+                    }).SetAttributes({value: input.value || '', placeholder: input.placeholder, type: input.type || 'text', key_name: input.key_name}).on('click', (e) => {
+                        e.stopPropagation()
+                        if(input.on_click !== undefined){
+                            input.on_click(e)
+                        }
+                    })
                     return i
                 }
             }),
@@ -465,6 +533,19 @@ class APP{
         prompt._remove = () => {
             blocker.remove()
             prompt.remove()
+        }
+
+        prompt._get_values = () => {
+            let values = {}
+            Object.entries(prompt.querySelectorAll('input[type="text"], input[type="password"], select')).map((entry) => {
+                return entry[1]
+            }).forEach((input) => {
+                console.log(input.getAttribute('key_name'))
+                console.log(input.value)
+                values[input.getAttribute('key_name')] = input.value
+            })
+
+            return values;
         }
 
         document.body.Append([blocker, prompt])

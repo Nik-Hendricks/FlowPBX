@@ -1,22 +1,3 @@
-{"table":"users","data":{"username":"test","password":"test","email":"test","role":"test"},"_id":"e6RaQ0nnYsdIIb2L"}
-{"username":"test","password":"test","email":"test","role":"test","_id":"q0qsAezJJySEa5Wy"}
-{"username":"test","password":"test","email":"test","role":"test","_id":"drAPJI1yaTR5LfgT"}
-{"username":"asdfasdfasdf","password":"test","email":"test","role":"test","_id":"bFSqxKqgIaq0DGFv"}
-{"username":"","password":"test","email":"test","role":"test","_id":"DQFVv6oCNMNyhlvX"}
-{"_id":"Y05MgZLCaQqTMIDt"}
-{"_id":"4Jkr1hGEkEk3Vc1w"}
-{"_id":"1dyfVJKUncrsSBPx"}
-{"_id":"Bob2jdSPlWDKCdPC"}
-{"_id":"Kq8LJa4SSLDvZKfJ"}
-{"_id":"leSLKORPPnxjoGm7"}
-{"username":"test","password":"test","_id":"zahpd3kQYwxEg1IS"}
-{"username":"asdfa","password":"sdfasdf","_id":"KhQOhzWgLYgC6mg6"}
-{"username":"aaaaaa","password":"aaaaa","_id":"h8iksdxb6ZemEUSe"}
-{"username":"test","password":"test","_id":"9Pi6Mhmdhsm14WHF"}
-{"_id":"p7eVyLVgSWLKFs4j"}
-{"_id":"JkKrptcXZVC1gUzy"}
-{"_id":"XqfZ0rDKtvLAXGqy"}
-{"_id":"d2nqL9JQ00qMiORs"}
-{"_id":"TKMYJqIQ7bRH0QTM"}
-{"username":"asdf","password":"asdf","_id":"ldPWFaQuPenNelvN"}
-{"username":"asdf","password":"adsf","_id":"L8aVYVXwTHSooh4p"}
+{"type":"User","extension":"100","username":"bill","password":"root","_id":"Qm93unI3jRJM2ukh"}
+{"type":"Select Type","trunk_name":"test trunk","username":"177793489589","password":"rootpass","ip":"sip.callcentric.com","port":"5060","_id":"j4LzOZytCWOZz70C"}
+{"type":"Trunk","trunk_name":"Test Trunk","username":"177711171","password":"rootPassword","ip":"sip.callcentric.com","port":"5060","_id":"WVpoBLOLj22cOmhN"}
