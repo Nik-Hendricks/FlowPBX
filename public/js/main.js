@@ -498,7 +498,7 @@ class APP{
                         marginTop: '10px',
                         padding: '5px',
                         boxSizing: 'border-box',
-                    }).SetAttributes({value: input.value || '', placeholder: input.placeholder, key_name: input.key_name}).Append([
+                    }).SetAttributes({value: (input.value !== undefined) ? input.value.toLowerCase() : '', placeholder: input.placeholder, key_name: input.key_name}).Append([
                         document.createElement('option').InnerHTML(input.value || 'Select Type'),
                         ...input.options.map((option) => {
                             return document.createElement('option').InnerHTML(option)

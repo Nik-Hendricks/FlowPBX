@@ -1,3 +1,1 @@
-{"type":"User","extension":"100","username":"bill","password":"root","_id":"Qm93unI3jRJM2ukh"}
-{"type":"Select Type","trunk_name":"test trunk","username":"177793489589","password":"rootpass","ip":"sip.callcentric.com","port":"5060","_id":"j4LzOZytCWOZz70C"}
-{"type":"Trunk","trunk_name":"Test Trunk","username":"177711171","password":"rootPassword","ip":"sip.callcentric.com","port":"5060","_id":"WVpoBLOLj22cOmhN"}
+{"type":"Trunk","trunk_name":"local","username":"1000","password":"rootPassword","ip":"192.168.1.2","port":"5060","_id":"rE7fcKOoEShVAiz7"}

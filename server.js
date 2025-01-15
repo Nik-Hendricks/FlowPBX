@@ -20,9 +20,19 @@ class FlowPBX {
                 console.log('user disconnected');
             });
         });
+        this.update_voip_users();
+        this.VOIP.TrunkManager.addTrunk({
+            name:'trunk1',
+            type:'SIP',
+            username:'1001',
+            password:'rootPassword',
+            ip:'192.168.1.2',
+            port:5060,
+            callId:'1234567890'
+        })
     }
-
-
+    
+    
     init_express(express_events){
         const app           = express();
         const __dirname     = fs.realpathSync('.');
@@ -67,14 +77,14 @@ class FlowPBX {
                 })
             }
         })
-
+        
         this.httpServer = httpServer;
         this.http_io = new Server(this.httpServer);
         this.httpServer.listen(80, () => {
             console.log('HTTP Server running on port 80');
         });
     }
-
+    
     get_data(table, query){
         return new Promise(resolve => {
             this.DB[table].find(query, (err, docs) => {
@@ -82,35 +92,37 @@ class FlowPBX {
             })
         })
     }
-
+    
     init_DB(){
         this.DB = {
             users:              new nedb({ filename: 'DB/users.db', autoload: true }),
-            trunks:             new nedb({ filename: 'DB/trunks.db', autoload: true }),
+            //trunks:             new nedb({ filename: 'DB/trunks.db', autoload: true }),
             routes:             new nedb({ filename: 'DB/routes.db', autoload: true }),
             calls:              new nedb({ filename: 'DB/calls.db', autoload: true }),
-            msg_stack:          new nedb({ filename: 'DB/msg_stack.db', autoload: true }),
+            //msg_stack:          new nedb({ filename: 'DB/msg_stack.db', autoload: true }),
         }
     }
-
+    
     update_voip_users(){
         this.get_data('users', {}).then(d => {
             d.forEach((user) => {
-                if(user.type == 'trunk'){
-                    this.VOIP.addTrunk({
+                if(user.type == 'Trunk'){
+                    console.log('ADDING TRUNK')
+                    let t = this.VOIP.TrunkManager.addTrunk({
                         name:user.name,
-                        type:user.trunk_type,
                         username:user.username,
                         password:user.password,
                         ip:user.ip,
                         port:user.port,
-                        callId:user.callId
+                        callId:'1234567890'
                     })
+                    
+                    this.VOIP.TrunkManager.trunks[user.name].register();
                 }
             })
         })
     }
-
+    
     init_VOIP(){
         this.VOIP = new VOIP({
             type:'server',
