@@ -46,6 +46,16 @@ class APP{
                             this.Trunks()
                         ])
                     }
+                },
+                {
+                    //routes
+                    icon: 'alt_route',
+                    name:'Routes',
+                    callback: () => {
+                        this.content.querySelector('#app-body').InnerHTML('').Append([
+                            this.Routes()
+                        ])
+                    }
                 }
             ]
 
@@ -204,7 +214,7 @@ class APP{
         return body
     }
 
-    Toolbar1(){
+    Toolbar1(props){
         return document.createElement('div').Style({
             width:'100%',
             height: `${this._table_header_height}px`,
@@ -250,7 +260,8 @@ class APP{
                 })
             ]).on('click', () => {
                 (async () => {
-                    let p = await this.UserPrompt()
+                    console.log(props)
+                    await props.prompt.bind(this)()
                 })()
             })
         ])
@@ -265,6 +276,8 @@ class APP{
                 this.TrunkPrompt(v)
             }else if(e.target.value == 'User'){
                 this.UserPrompt(v)
+            }else if(e.target.value == 'Route'){
+                this.RoutePrompt(v)
             }
         }}
     }
@@ -307,6 +320,24 @@ class APP{
         })
     }
 
+    RoutePrompt(props){
+        props = props || {}
+        console.log(props)
+        return this.Prompt({
+            title: 'Add Route',
+            inputs: [
+                this.PromptTypeInput({value: props.type}),
+                {value: props.name, placeholder: 'Name', key_name: 'name'},
+                {value: props.match, placeholder: 'Match', key_name: 'match'},
+                {value: props.endpoint, placeholder: 'Endpoint', key_name: 'endpoint'},
+            ],
+            callback: async (props) => {
+                let r = await this.api.set_data({table: 'routes', data: props})
+                console.log(r)
+            }
+        })
+    }
+
     //views
 
     Dashboard(){
@@ -325,7 +356,7 @@ class APP{
         })
         return this.DataTable({
             data: data,
-            toolbar: this.Toolbar1(),
+            toolbar: this.Toolbar1({prompt: this.UserPrompt}),
             columns: [
                 {name: 'Extension', key_name: 'extension'},
                 {name: 'Type', key_name: 'type'},
@@ -341,7 +372,7 @@ class APP{
         })
         return this.DataTable({
             data: data,
-            toolbar: this.Toolbar1(),
+            toolbar: this.Toolbar1({prompt: this.TrunkPrompt}),
             columns: [
                 {name: 'Trunk Name', key_name: 'trunk_name'},
                 {name: 'Type', key_name: 'type'},
@@ -349,6 +380,20 @@ class APP{
                 {name: 'Password', key_name: 'password'},
                 {name: 'IP', key_name: 'ip'},
                 {name: 'Port', key_name: 'port'},
+            ]
+        })
+    }
+
+    Routes(){
+        let data = this.DataManager.routes
+        return this.DataTable({
+            data: data,
+            toolbar: this.Toolbar1({prompt: this.RoutePrompt}),
+            columns: [
+                {name: 'Name', key_name: 'name'},
+                {name: 'Type', key_name: 'type'},
+                {name: 'Match', key_name: 'match'},
+                {name: 'Endpoint', key_name: 'endpoint'},
             ]
         })
     }

@@ -74,6 +74,7 @@ class FlowPBX {
             }else{
                 table.insert(data, (err, newDoc) => {
                     res.send({status:'inserted'})
+                    this.update_voip_users();
                 })
             }
         })
@@ -118,6 +119,15 @@ class FlowPBX {
                     })
                     
                     this.VOIP.TrunkManager.trunks[user.name].register();
+                }else if(user.type == 'User'){
+                    console.log('ADDING USER')
+                    this.VOIP.UserManager.addUser({
+                        username:user.username,
+                        password:user.password,
+                        extension:user.extension,
+                        ip:undefined,
+                        port:undefined,
+                    })
                 }
             })
         })
@@ -136,12 +146,13 @@ class FlowPBX {
             }else if(d.message !== undefined){
                 let parsed_headers = SIP.Parser.ParseHeaders(d.message.headers);
                 if(d.type == 'REGISTER'){
-                    server.uas_handle_registration(d.message, USERS, (response) => {
+                    this.VOIP.uas_handle_registration(d.message, (response) => {
                         console.log('response')
                         console.log(response)
                     })
                 }else if(d.type == 'INVITE'){
-                    server.uas_handle_invite(d.message, USERS, (response) => {
+                    console.log('SENDING TO INVITE TO UAS')
+                    this.VOIP.uas_handle_invite(d.message, (response) => {
                         console.log('response')
                         console.log(response)
                     })
