@@ -320,13 +320,17 @@ class APP{
         })
     }
 
+    PromptRouteTypeInput(props){
+        return {value: props.value, placeholder: 'Type', key_name: 'type', type: 'select', options: ['Extension', 'Trunk'], on_change: (e) => {}}
+    }
+
     RoutePrompt(props){
         props = props || {}
         console.log(props)
         return this.Prompt({
             title: 'Add Route',
             inputs: [
-                this.PromptTypeInput({value: props.type}),
+                this.PromptRouteTypeInput({value: props.type}),
                 {value: props.name, placeholder: 'Name', key_name: 'name'},
                 {value: props.match, placeholder: 'Match', key_name: 'match'},
                 {value: props.endpoint, placeholder: 'Endpoint', key_name: 'endpoint'},

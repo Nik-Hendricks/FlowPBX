@@ -21,15 +21,6 @@ class FlowPBX {
             });
         });
         this.update_voip_users();
-        this.VOIP.TrunkManager.addTrunk({
-            name:'trunk1',
-            type:'SIP',
-            username:'1001',
-            password:'rootPassword',
-            ip:'192.168.1.2',
-            port:5060,
-            callId:'1234567890'
-        })
     }
     
     
@@ -110,7 +101,7 @@ class FlowPBX {
                 if(user.type == 'Trunk'){
                     console.log('ADDING TRUNK')
                     let t = this.VOIP.TrunkManager.addTrunk({
-                        name:user.name,
+                        name:user.trunk_name,
                         username:user.username,
                         password:user.password,
                         ip:user.ip,
@@ -118,7 +109,7 @@ class FlowPBX {
                         callId:'1234567890'
                     })
                     
-                    this.VOIP.TrunkManager.trunks[user.name].register();
+                    //this.VOIP.TrunkManager.trunks[user.name].register();
                 }else if(user.type == 'User'){
                     console.log('ADDING USER')
                     this.VOIP.UserManager.addUser({
@@ -131,19 +122,35 @@ class FlowPBX {
                 }
             })
         })
+        this.get_data('routes', {}).then(d => {
+            d.forEach((route) => {
+                console.log('ADDING ROUTE')
+                this.VOIP.Router.addRoute({
+                    name: route.name,
+                    type: route.type,
+                    match: route.match,
+                    endpoint: route.endpoint,
+                })
+            })
+        })
     }
     
     init_VOIP(){
         this.VOIP = new VOIP({
             type:'server',
             transport:{
-                type: 'UDP',
+                type: 'udp4',
                 port: 5060,
             },
         },
         (d) => {
-            if(d.type == 'UAS_READY'){
-            }else if(d.message !== undefined){
+            console.log('')
+            console.log('VOIP EVENT')
+            console.log(d)
+            console.log('')
+
+
+            if(d.message !== undefined){
                 let parsed_headers = SIP.Parser.ParseHeaders(d.message.headers);
                 if(d.type == 'REGISTER'){
                     this.VOIP.uas_handle_registration(d.message, (response) => {
@@ -157,6 +164,9 @@ class FlowPBX {
                         console.log(response)
                     })
                     
+                }else{
+                    console.log('UNKNOWN MESSAGE')
+                    console.log(d)
                 }
             }
         })
