@@ -8,6 +8,7 @@ class APP{
             this.DataManager = {
                 users: await this.api.get_data({table: 'users', query: {}}),
                 routes: await this.api.get_data({table: 'routes', query: {}}),
+                trunks: await this.api.get_data({table: 'trunks', query: {}}),
             }
             this._header_height = 50;
             this._header_background_color = 'black';
@@ -286,6 +287,7 @@ class APP{
         props = props || {}
         console.log(props)
         return this.Prompt({
+            _id: props._id || undefined,
             title: 'Add User',
             inputs: [
                 this.PromptTypeInput({value: props.type}),
@@ -293,8 +295,8 @@ class APP{
                 {value: props.username, placeholder: 'Username', key_name: 'username'},
                 {value: props.password, placeholder: 'Password', key_name: 'password'},
             ],
-            callback: async (props) => {
-                let r = await this.api.set_data({table: 'users', data: props})
+            callback: async (p) => {
+                let r = await this.api.set_data({table: 'users', data: p})
                 console.log(r)
             }
         })
@@ -304,6 +306,7 @@ class APP{
         props = props || {}
         console.log(props)
         return this.Prompt({
+            _id: props._id || undefined,
             title: 'Add Trunk',
             inputs: [
                 this.PromptTypeInput({value: props.type}),
@@ -313,27 +316,39 @@ class APP{
                 {value: props.ip, placeholder: 'IP', key_name: 'ip'},
                 {value: props.port, placeholder: 'Port', key_name: 'port'},
             ],
-            callback: async (props) => {
-                let r = await this.api.set_data({table: 'users', data: props})
+            callback: async (p) => {
+                let r = await this.api.set_data({table: 'trunks', data: p})
                 console.log(r)
             }
         })
     }
 
     PromptRouteTypeInput(props){
-        return {value: props.value, placeholder: 'Type', key_name: 'type', type: 'select', options: ['Extension', 'Trunk'], on_change: (e) => {}}
+        return {value: props.value, placeholder: 'Type', key_name: 'endpoint_type', type: 'select', options: ['Extension', 'Trunk'], on_change: (e) => {
+            let v = e.target.parentElement._get_values()
+            e.target.parentElement._remove()
+            this.RoutePrompt(v)
+        }}
+    }
+
+    PromptRouteEndpointInput(props){
+        return {value: props.value, placeholder: 'Endpoint', key_name: 'endpoint', type: 'select', options: ((props.endpoint_type  || '' ).toLowerCase() == 'extension') ? this.DataManager.users.map((user) => {
+            return `${user.extension} - ${user.username}`
+        }) : this.DataManager.trunks.map((trunk) => {
+            return trunk.trunk_name
+        })}
     }
 
     RoutePrompt(props){
         props = props || {}
-        console.log(props)
         return this.Prompt({
             title: 'Add Route',
             inputs: [
-                this.PromptRouteTypeInput({value: props.type}),
+                this.PromptTypeInput({value: props.type}),
+                this.PromptRouteTypeInput({value: props.endpoint_type}),
                 {value: props.name, placeholder: 'Name', key_name: 'name'},
                 {value: props.match, placeholder: 'Match', key_name: 'match'},
-                {value: props.endpoint, placeholder: 'Endpoint', key_name: 'endpoint'},
+                this.PromptRouteEndpointInput({value: props.endpoint, endpoint_type: props.endpoint_type}),
             ],
             callback: async (props) => {
                 let r = await this.api.set_data({table: 'routes', data: props})
@@ -366,14 +381,20 @@ class APP{
                 {name: 'Type', key_name: 'type'},
                 {name: 'Username', key_name: 'username'},
                 {name: 'Password', key_name: 'password'},
-            ]
+            ],
+            row_onclick: (ev) => {
+                let user_data = this.DataManager.users.filter((user) => {
+                    return user._id == ev.target.parentElement.getAttribute('data-id')
+                })
+                let d = user_data[0]
+                d._id = ev.target.parentElement.getAttribute('data-id')
+                this.UserPrompt(d)
+            }
         })
     }
 
     Trunks(){
-        let data = this.DataManager.users.filter((user) => {
-            return user.type.toLowerCase() == 'trunk'
-        })
+        let data = this.DataManager.trunks;
         return this.DataTable({
             data: data,
             toolbar: this.Toolbar1({prompt: this.TrunkPrompt}),
@@ -384,7 +405,15 @@ class APP{
                 {name: 'Password', key_name: 'password'},
                 {name: 'IP', key_name: 'ip'},
                 {name: 'Port', key_name: 'port'},
-            ]
+            ],
+            row_onclick: (ev) => {
+                let trunk_data = this.DataManager.trunks.filter((trunk) => {
+                    return trunk._id == ev.target.parentElement.getAttribute('data-id')
+                })
+                let d = trunk_data[0]
+                d._id = ev.target.parentElement.getAttribute('data-id')
+                this.TrunkPrompt(d)
+            }
         })
     }
 
@@ -398,7 +427,10 @@ class APP{
                 {name: 'Type', key_name: 'type'},
                 {name: 'Match', key_name: 'match'},
                 {name: 'Endpoint', key_name: 'endpoint'},
-            ]
+            ],
+            row_onclick: (ev) => {
+                console.log(ev.target.parentElement.getAttribute('data-id'))
+            }
         })
     }
 
@@ -472,7 +504,11 @@ class APP{
                         borderBottom: '1px solid #f1f1f1',
                     }).InnerHTML(row[c_name])
                 })
-            )
+            ).SetAttributes({'data-id': row._id}).on('click', (ev) => {
+                if(props.row_onclick !== undefined){
+                    props.row_onclick(ev)
+                }
+            })
 
             table.querySelector('#table-body').Append([row_el])
         }
@@ -531,6 +567,7 @@ class APP{
             color: 'white',
             borderRadius: '5px',
         }).InnerHTML('Submit').on('click', () => {
+            console.log(prompt._get_values())
             props.callback(prompt._get_values())
             prompt._remove()
         })
@@ -548,7 +585,7 @@ class APP{
                         padding: '5px',
                         boxSizing: 'border-box',
                     }).SetAttributes({value: (input.value !== undefined) ? input.value.toLowerCase() : '', placeholder: input.placeholder, key_name: input.key_name}).Append([
-                        document.createElement('option').InnerHTML(input.value || 'Select Type'),
+                        document.createElement('option').InnerHTML(input.value || `Select ${input.placeholder}`),
                         ...input.options.map((option) => {
                             return document.createElement('option').InnerHTML(option)
                         })
@@ -559,7 +596,6 @@ class APP{
                     })
                     return i
                 }else{
-                    console.log(input)
                     let i = document.createElement('input').Style({
                         width: '100%',
                         height: '40px',
@@ -593,6 +629,11 @@ class APP{
                 console.log(input.value)
                 values[input.getAttribute('key_name')] = input.value
             })
+
+            console.log(props)
+            if(props._id !== undefined){
+                values._id = props._id
+            }
 
             return values;
         }

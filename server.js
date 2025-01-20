@@ -46,14 +46,16 @@ class FlowPBX {
             let table = this.DB[req.body.table];
             let data = req.body.data;
             let id = data._id;
-            let query = req.body.query;
+            let query = req.body.query || {};
             
             //future we will check auth key here passed in data and then remove it.
             
             if(id !== undefined){
-                table.findOne({ _id: Number(id) }, (err, doc) => {
+                table.findOne({ _id: id }, (err, doc) => {
                     if(doc !== null){
-                        table.update({ _id: Number(id) }, { $set: {...data} }, query, (err, numReplaced) => {
+                        console.log('UPDATING')
+                        console.log(doc)
+                        table.update({ _id: id }, { $set: {...data} }, query, (err, numReplaced) => {
                             res.send({status:'updated'})
                         })
                     }else{
@@ -88,7 +90,7 @@ class FlowPBX {
     init_DB(){
         this.DB = {
             users:              new nedb({ filename: 'DB/users.db', autoload: true }),
-            //trunks:             new nedb({ filename: 'DB/trunks.db', autoload: true }),
+            trunks:             new nedb({ filename: 'DB/trunks.db', autoload: true }),
             routes:             new nedb({ filename: 'DB/routes.db', autoload: true }),
             calls:              new nedb({ filename: 'DB/calls.db', autoload: true }),
             //msg_stack:          new nedb({ filename: 'DB/msg_stack.db', autoload: true }),
@@ -98,28 +100,28 @@ class FlowPBX {
     update_voip_users(){
         this.get_data('users', {}).then(d => {
             d.forEach((user) => {
-                if(user.type == 'Trunk'){
-                    console.log('ADDING TRUNK')
-                    let t = this.VOIP.TrunkManager.addTrunk({
-                        name:user.trunk_name,
-                        username:user.username,
-                        password:user.password,
-                        ip:user.ip,
-                        port:user.port,
-                        callId:'1234567890'
-                    })
-                    
-                    //this.VOIP.TrunkManager.trunks[user.name].register();
-                }else if(user.type == 'User'){
-                    console.log('ADDING USER')
-                    this.VOIP.UserManager.addUser({
-                        username:user.username,
-                        password:user.password,
-                        extension:user.extension,
-                        ip:undefined,
-                        port:undefined,
-                    })
-                }
+                console.log('ADDING USER')
+                this.VOIP.UserManager.addUser({
+                    username:user.username,
+                    password:user.password,
+                    extension:user.extension,
+                    ip:undefined,
+                    port:undefined,
+                })
+            })
+        })
+        this.get_data('trunks', {}).then(d => {
+            d.forEach((trunk) => {
+                console.log('ADDING TRUNK')
+                this.VOIP.TrunkManager.addTrunk({
+                    name:trunk.name,
+                    type:trunk.type,
+                    username:trunk.username,
+                    password:trunk.password,
+                    ip:trunk.ip,
+                    port:trunk.port,
+                    callId:trunk.callId,
+                })
             })
         })
         this.get_data('routes', {}).then(d => {

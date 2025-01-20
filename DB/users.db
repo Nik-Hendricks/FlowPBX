@@ -1,3 +1,3 @@
-{"type":"User","extension":"1001","username":"bill","password":"rootPassword","_id":"Y20QGOL8axQJAMfP"}
-{"type":"User","extension":"1000","username":"test","password":"rootpass","_id":"bGYrIxulRU40Dgi6"}
-{"type":"Trunk","trunk_name":"local","username":"1000","password":"rootPassword","ip":"192.168.1.2","port":"5060","_id":"rE7fcKOoEShVAiz7"}
+{"type":"User","extension":"1001","username":"Bill","password":"rootPassword","_id":"0esWIoq9KMVyu0Sh"}
+{"type":"User","extension":"1000","username":"Nik","password":"rootPassword","_id":"FD6lXx0DKwr4CZrw"}
+{"type":"User","extension":"1000","username":"Niko","password":"rootPassword","_id":"FD6lXx0DKwr4CZrw"}
