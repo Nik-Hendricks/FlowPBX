@@ -74,8 +74,7 @@ Some of the key features planned for FlowPBX include:
 
 ## 📞 Contact
 Have questions or want to connect? Feel free to reach out:
-- **Email:** flowpbx@yourdomain.com
-- **GitHub Issues:** [Submit an issue](https://github.com/yourusername/FlowPBX/issues)
+- **GitHub Issues:** [Submit an issue](https://github.com/Nik-Hendricks/FlowPBX/issues)
 
 ---
 
