@@ -38,6 +38,19 @@ const api = {
             });
         })
     },
+
+    get_trunk_uacs: async () => {
+        return new Promise(resolve => {
+            fetch('/pbx/uacs/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json()).then(data => {
+                resolve(data);
+            });
+        })
+    }
 };
 
 export default api;

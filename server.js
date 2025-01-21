@@ -68,6 +68,15 @@ class FlowPBX {
                 })
             }
         })
+
+        app.get('/pbx/uacs/', (req, res) => {
+            let ret = {};
+           for(var t in this.VOIP.TrunkManager.trunks){
+                let trunk = this.VOIP.TrunkManager.trunks[t];
+                ret[t] = trunk.uac.message_stack
+           }
+            res.json(ret);
+        })
         
         this.httpServer = httpServer;
         this.http_io = new Server(this.httpServer);
@@ -86,7 +95,7 @@ class FlowPBX {
     
     init_DB(){
         this.DB = {
-            extensions:              new nedb({ filename: 'DB/extensions.db', autoload: true }),
+            extensions:         new nedb({ filename: 'DB/extensions.db', autoload: true }),
             trunks:             new nedb({ filename: 'DB/trunks.db', autoload: true }),
             routes:             new nedb({ filename: 'DB/routes.db', autoload: true }),
             calls:              new nedb({ filename: 'DB/calls.db', autoload: true }),
@@ -111,7 +120,7 @@ class FlowPBX {
             d.forEach((trunk) => {
                 console.log('ADDING TRUNK')
                 this.VOIP.TrunkManager.addTrunk({
-                    name:trunk.name,
+                    name:trunk.trunk_name,
                     type:trunk.type,
                     username:trunk.username,
                     password:trunk.password,

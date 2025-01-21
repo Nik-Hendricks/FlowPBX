@@ -9,6 +9,7 @@ class APP{
                 extensions: await this.api.get_data({table: 'extensions', query: {}}),
                 routes: await this.api.get_data({table: 'routes', query: {}}),
                 trunks: await this.api.get_data({table: 'trunks', query: {}}),
+                trunk_uacs: await this.api.get_trunk_uacs(),
             }
             this._header_height = 50;
             this._header_background_color = 'black';
@@ -56,6 +57,16 @@ class APP{
                     callback: () => {
                         this.content.querySelector('#app-body').InnerHTML('').Append([
                             this.Routes()
+                        ])
+                    }
+                },
+                //sip debug
+                {
+                    icon: 'bug_report',
+                    name:'SIP Debug',
+                    callback: () => {
+                        this.content.querySelector('#app-body').InnerHTML('').Append([
+                            this.SipDebugView()
                         ])
                     }
                 }
@@ -669,6 +680,19 @@ class APP{
                 console.log(ev.target.parentElement.getAttribute('data-id'))
             }
         })
+    }
+
+    SipDebugView(){
+        console.log(this.DataManager.trunk_uacs)
+        return document.createElement('div').InnerHTML('SIP Debug').Style({
+            width: '100%',
+            height: '100%',
+            display: 'block',
+            textAlign: 'center',
+            lineHeight: '100px',
+            fontSize: '20px',
+        })
+
     }
 
     DataTable(props){
