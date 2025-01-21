@@ -42,13 +42,10 @@ class FlowPBX {
 
         app.post('/api/set', (req, res) => {
             console.log('SET DATA')
-            //find and check if the data exists
             let table = this.DB[req.body.table];
             let data = req.body.data;
             let id = data._id;
             let query = req.body.query || {};
-            
-            //future we will check auth key here passed in data and then remove it.
             
             if(id !== undefined){
                 table.findOne({ _id: id }, (err, doc) => {
