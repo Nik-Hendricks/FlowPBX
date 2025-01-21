@@ -6,19 +6,20 @@ class APP{
         (async () => {
             this.api = api;
             this.DataManager = {
-                users: await this.api.get_data({table: 'users', query: {}}),
+                extensions: await this.api.get_data({table: 'extensions', query: {}}),
                 routes: await this.api.get_data({table: 'routes', query: {}}),
                 trunks: await this.api.get_data({table: 'trunks', query: {}}),
             }
             this._header_height = 50;
             this._header_background_color = 'black';
             this._header_color = 'white';
-            this._side_bar_width = 250;
             this._side_bar_color = this._header_color;
             this._side_bar_background_color = this._header_background_color;
             this._table_header_height = 40;
             this._table_toolbar_button_width = 150;
             this._table_header_row_background_color = '#f1f1f1';
+            this.side_bar_toggled = false;
+            this._side_bar_width = (window.innerWidth < 700) ? 250 : (this.side_bar_toggled) ? 250 : 50;
             this.side_bar_items = [
                 {
                     icon: 'dashboard',
@@ -139,11 +140,7 @@ class APP{
     }
 
     AppHeader(){
-        let header = document.createElement('div')
-        header.SetAttributes({
-            id: 'app-header'
-        })
-        header.Style({
+        let header = document.createElement('div').Style({
             width: '100%',
             height: `${this._header_height}px`,
             backgroundColor:  this._header_background_color,
@@ -151,13 +148,62 @@ class APP{
             display:'block',
             textAlign:'center',
             lineHeight: `${this._header_height}px`, 
+        }).SetAttributes({
+            id: 'app-header'
         })
-        header.InnerHTML('FlowPBX')
+
+        let title = document.createElement('span').InnerHTML('FlowPBX').Style({
+            fontSize: '20px',
+            fontWeight: 'bold',
+        })
+
+        let mobile_menu = document.createElement('i').Classes(['material-icons']).InnerHTML('menu').Style({
+            float: 'left',
+            marginLeft: '10px',
+            height: '100%',
+            lineHeight: `${this._header_height}px`,
+            display:'block',
+        }).on('click', () => {
+            let sidebar = document.querySelector('#app-sidebar')
+            let main_body = document.querySelector('#app-body')
+            if(window.innerWidth < 700){
+                if(this.side_bar_toggled){
+                    sidebar.Style({left: `-${this._side_bar_width}px`})
+                    this.side_bar_toggled = false;
+                }else{
+                    sidebar.Style({left: '0'})
+                    this.side_bar_toggled = true;
+                }
+            }else{
+                if(this.side_bar_toggled){
+                    this._side_bar_width = 50;
+                    sidebar.Style({width: `${this._side_bar_width}px`})
+                    main_body.Style({marginLeft: `${this._side_bar_width}px`, width: `calc(100% - ${this._side_bar_width}px)`})
+                    this.side_bar_toggled = false;
+                    sidebar.querySelectorAll('span').forEach((span) => {
+                        span.Style({opacity: '0'})
+                    })
+                }else{
+                    this._side_bar_width = 250;
+                    sidebar.Style({width: `${this._side_bar_width}px`})
+                    main_body.Style({marginLeft: `${this._side_bar_width}px`, width: `calc(100% - ${this._side_bar_width}px)`})
+                    this.side_bar_toggled = true;
+                    sidebar.querySelectorAll('span').forEach((span) => {
+                        span.Style({opacity: '1'})
+                    })
+                }
+            }
+
+        })
+
+        header.Append([mobile_menu, title])
+
+
         return header
     }
 
     AppSideBar(items){
-        return document.createElement('div').SetAttributes({
+        let ret = document.createElement('div').SetAttributes({
             id: 'app-sidebar'
         }).Style({
             width: `${this._side_bar_width}px`,
@@ -165,8 +211,9 @@ class APP{
             backgroundColor: this._side_bar_background_color,
             color: this._side_bar_color,
             display:'block',
-            position:'fixed',
+            position:'absolute',
             float:'left',
+            transition: 'ease-in-out left 0.3s, ease-in-out width 0.3s',
         }).Append(
             items.map((item) => {
                 return document.createElement('div').Style({
@@ -190,24 +237,38 @@ class APP{
                         textAlign:'center', 
                         position:'absolute',
                         lineHeight: `${this._header_height}px`,
-                        display:'block',
-                    }).on('click', () => {
-                        item.callback()
+                        opacity: (window.innerWidth < 700) ? '1' : (this.side_bar_toggled) ? '1' : '0',
+                        transition: 'ease-in-out opacity 0.3s',
                     })
-                ])
+                ]).on('click', () => {
+                    item.callback()
+                })
             })  
         )
+
+        if(window.innerWidth < 700){
+            ret.Style({
+                left: (this.side_bar_toggled) ? '0' : `-${this._side_bar_width}px`,
+            })
+        }else{
+            ret.Style({
+                width: (this.side_bar_toggled) ? `${this._side_bar_width}px` : '50px',
+            })
+        }
+
+        return ret
     }
 
     AppBody(){
         let body = document.createElement('div').SetAttributes({
             id: 'app-body'
         }).Style({
-            width: (window.innerWidth < 700) ? '100%' : `calc(100% - ${this._side_bar_width}px)`,
+            width: (window.innerWidth < 700) ? '100%' : `calc(100% - ${this._side_bar_width}px)` ,
             marginLeft: (window.innerWidth < 700) ? '0' : `${this._side_bar_width}px`,
             height: '100%',
             display: 'block',
             float: 'left',
+            transition: 'ease-in-out margin-left 0.3s, ease-in-out width 0.3s',
         })
         //body.Append([
         //    this.LoginForm()
@@ -296,7 +357,7 @@ class APP{
                 {value: props.password, placeholder: 'Password', key_name: 'password'},
             ],
             callback: async (p) => {
-                let r = await this.api.set_data({table: 'users', data: p})
+                let r = await this.api.set_data({table: 'extensions', data: p})
                 console.log(r)
             }
         })
@@ -332,7 +393,7 @@ class APP{
     }
 
     PromptRouteEndpointInput(props){
-        return {value: props.value, placeholder: 'Endpoint', key_name: 'endpoint', type: 'select', options: ((props.endpoint_type  || '' ).toLowerCase() == 'extension') ? this.DataManager.users.map((user) => {
+        return {value: props.value, placeholder: 'Endpoint', key_name: 'endpoint', type: 'select', options: ((props.endpoint_type  || '' ).toLowerCase() == 'extension') ? this.DataManager.extensions.map((user) => {
             return `${user.extension} - ${user.username}`
         }) : this.DataManager.trunks.map((trunk) => {
             return trunk.trunk_name
@@ -370,7 +431,7 @@ class APP{
     }
 
     Extensions(){
-        let data = this.DataManager.users.filter((user) => {
+        let data = this.DataManager.extensions.filter((user) => {
             return user.type.toLowerCase() == 'user'
         })
         return this.DataTable({
@@ -383,10 +444,10 @@ class APP{
                 {name: 'Password', key_name: 'password'},
             ],
             row_onclick: (ev) => {
-                let user_data = this.DataManager.users.filter((user) => {
-                    return user._id == ev.target.parentElement.getAttribute('data-id')
+                let extension_data = this.DataManager.extensions.filter((extension) => {
+                    return extension._id == ev.target.parentElement.getAttribute('data-id')
                 })
-                let d = user_data[0]
+                let d = extension_data[0]
                 d._id = ev.target.parentElement.getAttribute('data-id')
                 this.UserPrompt(d)
             }

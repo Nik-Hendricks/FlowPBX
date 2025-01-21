@@ -86,7 +86,7 @@ class FlowPBX {
     
     init_DB(){
         this.DB = {
-            users:              new nedb({ filename: 'DB/users.db', autoload: true }),
+            extensions:              new nedb({ filename: 'DB/extensions.db', autoload: true }),
             trunks:             new nedb({ filename: 'DB/trunks.db', autoload: true }),
             routes:             new nedb({ filename: 'DB/routes.db', autoload: true }),
             calls:              new nedb({ filename: 'DB/calls.db', autoload: true }),
@@ -95,7 +95,7 @@ class FlowPBX {
     }
     
     update_voip_users(){
-        this.get_data('users', {}).then(d => {
+        this.get_data('extensions', {}).then(d => {
             d.forEach((user) => {
                 console.log('ADDING USER')
                 this.VOIP.UserManager.addUser({
