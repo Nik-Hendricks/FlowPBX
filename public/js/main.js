@@ -270,9 +270,6 @@ class APP{
             float: 'left',
             transition: 'ease-in-out margin-left 0.3s, ease-in-out width 0.3s',
         })
-        //body.Append([
-        //    this.LoginForm()
-        //])
         return body
     }
 
@@ -328,7 +325,6 @@ class APP{
             })
         ])
     }
-
 
     PromptTypeInput(props){
         return {value: props.value, placeholder: 'Type', key_name: 'type', type: 'select', options: ['User', 'Trunk', 'Route'], on_change: (e) => {
@@ -418,15 +414,195 @@ class APP{
         })
     }
 
-    //views
-
     Dashboard(){
-        let dashboard = document.createElement('div')
-        dashboard.Style({
+        let dashboard = document.createElement('div').Style({
             width: '100%',
             height: '100%',
         })
-        dashboard.InnerHTML('Dashboard')
+        let chart1 = document.createElement('canvas').SetAttributes({id: 'myChart'})
+        let chart1_container = document.createElement('div').Style({
+            width: '50%',
+            height: '50%',
+            display: 'block',
+        }).Append([
+            chart1
+        ])
+
+        dashboard.Append([
+            chart1_container
+        ])
+       
+        new Chart(chart1, {
+          type: 'line',
+          data: {
+            labels: [
+                'Monday',
+                '12:30',
+                '1:00',
+                '1:30',
+                '2:00',
+                '2:30',
+                '3:00',
+                '3:30',
+                '4:00',
+                '4:30',
+                '5:00',
+                '5:30',
+                '6:00',
+                '6:30',
+                '7:00',
+                '7:30',
+                '8:00',
+                '8:30',
+                '9:00',
+                '9:30',
+                '10:00',
+                '10:30',
+                '11:00',
+                '11:30',
+                '12:00',
+                'Tuesday',
+                '12:30',
+                '1:00',
+                '1:30',
+                '2:00',
+                '2:30',
+                '3:00',
+                '3:30',
+                '4:00',
+                '4:30',
+                '5:00',
+                '5:30',
+                '6:00',
+                '6:30',
+                '7:00',
+                '7:30',
+                '8:00',
+                '8:30',
+                '9:00',
+                '9:30',
+                '10:00',
+                '10:30',
+                '11:00',
+                '11:30',
+                '12:00',
+                'Wednesday',
+                '12:30',
+                '1:00',
+                '1:30',
+                '2:00',
+                '2:30',
+                '3:00',
+                '3:30',
+                '4:00',
+                '4:30',
+                '5:00',
+                '5:30',
+                '6:00',
+                '6:30',
+                '7:00',
+                '7:30',
+                '8:00',
+                '8:30',
+                '9:00',
+                '9:30',
+                '10:00',
+                '10:30',
+                '11:00',
+                '11:30',
+                '12:00',
+                'Thursday',
+                '12:30',
+                '1:00',
+                '1:30',
+                '2:00',
+                '2:30',
+                '3:00',
+                '3:30',
+                '4:00',
+                '4:30',
+                '5:00',
+                '5:30',
+                '6:00',
+                '6:30',
+                '7:00',
+                '7:30',
+                '8:00',
+                '8:30',
+                '9:00',
+                '9:30',
+                '10:00',
+                '10:30',
+                '11:00',
+                '11:30',
+                '12:00',
+                'Friday',
+                '12:30',
+                '1:00',
+                '1:30',
+                '2:00',
+                '2:30',
+                '3:00',
+                '3:30',
+                '4:00',
+                '4:30',
+                '5:00',
+                '5:30',
+                '6:00',
+                '6:30',
+                '7:00',
+                '7:30',
+                '8:00',
+                '8:30',
+                '9:00',
+                '9:30',
+                '10:00',
+                '10:30',
+                '11:00',
+                '11:30',
+                '12:00',
+                'Saturday',
+                '12:30',
+                '1:00',
+                '1:30',
+                '2:00',
+                '2:30',
+                '3:00',
+                '3:30',
+                '4:00',
+                '4:30',
+                '5:00',
+                '5:30',
+                '6:00',
+                '6:30',
+                '7:00',
+                '7:30',
+                '8:00',
+                '8:30',
+                '9:00',
+                '9:30',
+                '10:00',
+                '10:30',
+                '11:00',
+                '11:30',
+                '12:00',
+                'Sunday',
+            ],
+            datasets: [{
+              label: '# of Calls',
+              data: [12, 19, 3, 5, 2, 3],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+
         return dashboard
     }
 
