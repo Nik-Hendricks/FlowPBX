@@ -73,7 +73,7 @@ class FlowPBX {
             let ret = {};
            for(var t in this.VOIP.TrunkManager.trunks){
                 let trunk = this.VOIP.TrunkManager.trunks[t];
-                ret[t] = trunk.uac.message_stack
+                ret[t] = trunk.uac
            }
             res.json(ret);
         })

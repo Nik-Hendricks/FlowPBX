@@ -66,12 +66,11 @@ class APP{
                     name:'SIP Debug',
                     callback: () => {
                         this.content.querySelector('#app-body').InnerHTML('').Append([
-                            this.SipDebugView()
+                            this.SipUACSView()
                         ])
                     }
                 }
             ]
-
 
             this.init_dom();
             this.update()
@@ -148,6 +147,10 @@ class APP{
             this.AppBody(),
             this.AppSideBar(this.side_bar_items)
         ])
+    }
+
+    RouteViewReturn(){
+
     }
 
     AppHeader(){
@@ -682,8 +685,20 @@ class APP{
         })
     }
 
-    SipDebugView(){
+    SipUACSView(){
         console.log(this.DataManager.trunk_uacs)
+        let data = []
+
+        for(var uac in this.DataManager.trunk_uacs){
+            data.push({
+                trunk_name: uac,
+                username: this.DataManager.trunk_uacs[uac].username,
+                ip: this.DataManager.trunk_uacs[uac].ip,
+                port: this.DataManager.trunk_uacs[uac].port,
+                status: this.DataManager.trunk_uacs[uac].status
+            })
+        }
+
         return document.createElement('div').InnerHTML('SIP Debug').Style({
             width: '100%',
             height: '100%',
@@ -691,8 +706,114 @@ class APP{
             textAlign: 'center',
             lineHeight: '100px',
             fontSize: '20px',
+        }).Append([
+            this.DataTable({
+                data: data,
+                columns: [
+                    {name: 'Trunk Name', key_name: 'trunk_name'},
+                    {name: 'Username', key_name: 'username'},
+                    {name: 'IP', key_name: 'ip'},
+                    {name: 'Port', key_name: 'port'},
+                    {name: 'Status', key_name: 'status'},
+                ],
+                row_onclick: (ev) => {
+                    console.log(ev.target.parentElement.children[0].innerHTML)
+
+                    let d = this.DataManager.trunk_uacs[ev.target.parentElement.children[0].innerHTML].message_stack
+                    document.querySelector('#app-body').InnerHTML('').Append([
+                        this.SIPDebugView(d)
+                    ])
+                }
+            })
+        ])
+    }
+
+    SIPDebugView(d){
+        var data = [];
+        console.log(d)
+        console.log(d.length)
+        Object.entries(d).forEach((entry) => {
+            data.push(entry[1])
         })
 
+        console.log(data)
+        
+        return document.createElement('div').InnerHTML('SIP Debug').Style({
+            width: '100%',
+            height: '100%',
+            display: 'block',
+            textAlign: 'center',
+            lineHeight: '100px',
+            fontSize: '20px',
+        }).Append([
+            ...data.map((dialog) => {
+                dialog = Object.entries(dialog).map((entry) => { return entry[1]});
+                console.log(dialog[0][0].message);
+                
+                let dialog_name_el = document.createElement('div').Style({
+                    display:'block',
+                    width:'100%',
+                    height:'40px',
+                    lineHeight:'40px',
+                    textAlign:'center',
+                }).Append([
+                    document.createElement('span').InnerHTML('data_array').SetAttributes({class:'material-icons'}).Style({
+                        display:'block',
+                        fontSize:'24px',
+                        height:'40px',
+                        lineHeight:'40px',
+                        float:'left',
+                        paddingLeft:'10px',
+                        color:'#3498db',
+                    }),
+                    document.createElement('span').InnerHTML(dialog[0][0].message.headers.From.split('tag=')[1]).Style({
+                        display:'block',
+                        fontSize:'18px',
+                        height:'auto',
+                        position:'absolute',
+                        width:'calc(100% - 20px)',
+                    }),
+                ])
+                let dialog_el = document.createElement('div').Style({
+                    display:'block',
+                    width:'calc(100% - 20px)',
+                    height:'40px',
+                    lineHeight:'40px',
+                    textAlign:'center',
+                    fontSize:'18px',
+                    borderRadius:'5px',
+                    background:'rgb(18, 23, 28)',
+                    color:'white',
+                    cursor:'pointer',
+                    marginLeft:'10px',
+                    marginRight:'10px',
+                    marginTop:'5px',
+                    float:'left',
+                    transition:'height 0.3s',
+                }).SetAttributes({
+                    toggled:false,
+                })
+
+                dialog_el.Append([
+                    dialog_name_el,
+                ]).on('click', () => {
+                    console.log(dialog_el)
+                    dialog_el.SetAttributes({toggled: dialog_el.getAttribute('toggled') == 'true' ? 'false' : 'true'});
+                    if(dialog_el.getAttribute('toggled') == 'true'){
+                        dialog_el.Append(this.SIPFlowElement(dialog_name_el, dialog));
+                        dialog_el.Style({
+                            height:'auto',
+                        })
+                    }else{
+                        dialog_el.innerHTML = '';
+                        dialog_el.Append([dialog_name_el]);
+                    }
+                })
+
+                return dialog_el;
+
+            })
+        ])
     }
 
     DataTable(props){
@@ -900,6 +1021,83 @@ class APP{
         }
 
         document.body.Append([blocker, prompt])
+    }
+
+    SIPFlowElement(dialog_name_el, dialog){
+
+        return [
+            dialog_name_el,
+            ...dialog.map((messages) => {
+                return document.createElement('div').Style({
+                    display:'block',
+                    width:'100%',
+                    height:'100%',
+                }).Append([
+                    ...messages.map((message) => {
+                        return document.createElement('div').Style({
+                            display:'block',
+                            width:'100%',
+                            height:'100%',
+                            float:'left',
+                            borderBottom:'1px solid #ddd',
+                        }).Append([
+                            document.createElement('span').InnerHTML(message.sent ? 'arrow_upward' : 'arrow_downward').SetAttributes({class:'material-icons'}).Style({
+                                display:'block',
+                                width:'auto',
+                                height:'40px',
+                                lineHeight:'40px',
+                                textAlign:'center',
+                                float:'left',
+                                fontSize:'15px',
+                                color: message.sent ? '#2ecc71' : '#f39c12',
+                                marginLeft:'10px',
+                            }),
+                            document.createElement('span').InnerHTML(message.message.method !== undefined ? message.message.method : message.message.statusCode).Style({
+                                display:'block',
+                                width:'auto',
+                                height:'100%',
+                                textAlign:'left',
+                                paddingLeft:'10px',
+                                float:'left',
+                                fontSize:'15px',
+                                color: message.message.method !== undefined ? '#3498db' : 'white',
+                            }),
+                            (message.message.isResponse) ? document.createElement('span').InnerHTML(`${message.message.statusText}`).Style({
+                                display:'block',
+                                width:'auto',
+                                height:'100%',
+                                textAlign:'left',
+                                paddingLeft:'10px',
+                                float:'left',
+                                fontSize:'12px',
+                                color:(message.message.statusCode > 199 && message.message.statusCode < 300) ? '#2ecc71' : (message.message.statusCode > 399 && message.message.statusCode < 500) ? '#e74c3c' : (message.message.statusCode > 499 && message.message.statusCode < 600) ? '#e74c3c' : '#16a085',
+
+                            }) : undefined,
+                            document.createElement('span').InnerHTML(`${message.message.headers.From.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;')}`).Style({
+                                display:'block',
+                                width:'auto',
+                                height:'100%',
+                                textAlign:'left',
+                                paddingLeft:'10px',
+                                float:'left',
+                                fontSize:'12px',
+                                color:'grey',
+                            }),
+                            document.createElement('span').InnerHTML(`${message.message.headers.Via.split('branch=')[1].split(';')[0]}`).Style({
+                                display:'block',
+                                width:'auto',
+                                height:'100%',
+                                textAlign:'left',
+                                paddingLeft:'10px',
+                                float:'left',
+                                fontSize:'12px',
+                                color:'grey',
+                            }),
+                        ].filter((el) => { return el !== undefined}))
+                    })
+                ])
+            })
+        ]
     }
 
 }
