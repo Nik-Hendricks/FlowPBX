@@ -1,4 +1,6 @@
 import api from './api.js';
+import NodeManager from './NodeManager.js';
+
 
 let oldPushState = history.pushState;
 window.history.pushState = function pushState() {
@@ -13,12 +15,7 @@ class APP{
     constructor(){
         (async () => {
             this.api = api;
-            this.DataManager = {
-                extensions: await this.api.get_data({table: 'extensions', query: {}}),
-                routes: await this.api.get_data({table: 'routes', query: {}}),
-                trunks: await this.api.get_data({table: 'trunks', query: {}}),
-                trunk_uacs: await this.api.get_trunk_uacs(),
-            }
+            this.NodeManager = new NodeManager();
             this._header_height = 50;
             this._header_background_color = 'black';
             this._header_color = 'white';
@@ -36,7 +33,12 @@ class APP{
                 'sip_debug': this.SipUACSView,
                 'dashboard': this.Dashboard,
             }
-
+            this.DataManager = {
+                extensions: await this.api.get_data({table: 'extensions', query: {}}),
+                routes: await this.api.get_data({table: 'routes', query: {}}),
+                trunks: await this.api.get_data({table: 'trunks', query: {}}),
+                trunk_uacs: await this.api.get_trunk_uacs(),
+            }
 
             this.side_bar_items = [
                 {
@@ -67,26 +69,6 @@ class APP{
                     name:'Routes',
                     callback: () => {
                         this.updateUrlParams({view: 'routes'})
-
-                        let c = document.getElementById('mycanvas')
-                        c.width = c.clientWidth;
-                        c.height = c.clientHeight;
-                        
-
-                        var graph = new LGraph();
-                        var canvas = new LGraphCanvas(c, graph);
-                        
-                        var node_const = LiteGraph.createNode("basic/const");
-                        node_const.pos = [200,200];
-                        graph.add(node_const);
-                        node_const.setValue(4.5);
-                        
-                        var node_watch = LiteGraph.createNode("basic/watch");
-                        node_watch.pos = [700,200];
-                        graph.add(node_watch);
-                        
-                        node_const.connect(0, node_watch, 0 );
-                        graph.start()
                     }
                 },
                 //sip debug
@@ -101,6 +83,59 @@ class APP{
 
             this.init_dom();
             this.update()
+            this.NodeManager.init_litegraph();
+
+            this.NodeManager.Node({
+                name: 'IVR',
+                nodepath: 'VOIP',
+                inputs: [
+                    {name: 'Input', type: 'number'},
+                ],
+                outputs: [
+                    {name: '1', type: 'number'},
+                    {name: '2', type: 'number'},
+                    {name: '3', type: 'number'},
+                    {name: '4', type: 'number'},
+                    {name: '5', type: 'number'},
+                    {name: '6', type: 'number'},
+                    {name: '7', type: 'number'},
+                    {name: '8', type: 'number'},
+                    {name: '9', type: 'number'},
+                    {name: '0', type: 'number'},
+                ],
+                onExecute: (node) => {
+
+                }
+            })
+
+            this.NodeManager.Node({
+                name: 'MOH',
+                nodepath: 'VOIP',
+                inputs: [
+                    {name: 'Input', type: 'number'},
+                ],
+                outputs: [
+                    {name: 'Output', type: 'number'},
+                ],
+                onExecute: (node) => {
+                    let a = node.getInputData(0);
+                    if(a !== undefined){
+                        node.setOutputData(0, a);
+                    }
+                }
+            })
+
+            var node_const = LiteGraph.createNode("basic/const");
+            node_const.pos = [200,200];
+            this.NodeManager.graph.add(node_const);
+            node_const.setValue(4.5);
+            
+            var node_watch = LiteGraph.createNode("basic/watch");
+            node_watch.pos = [700,200];
+            this.NodeManager.graph.add(node_watch);
+            
+            node_const.connect(0, node_watch, 0 );
+
         })()
     }
 
@@ -184,10 +219,6 @@ class APP{
             right: '0',
             fontFamily: 'Arial, sans-serif',
         })
-    }
-
-    RouteViewReturn(){
-
     }
 
     AppHeader(){
@@ -724,15 +755,16 @@ class APP{
             height: '100%',
             overflow: 'hidden',
         }).Append([
-            document.createElement('canvas').SetAttributes({id: 'mycanvas'}).Style({
-                width: '100%',
-                height: '100%',
-                outline:'none',
-                border:'none',
-                margin:'0px',
-                padding:'0px',
-                overflow:'hidden',
-            })
+            //document.createElement('canvas').SetAttributes({id: 'mycanvas'}).Style({
+            //    width: '100%',
+            //    height: '100%',
+            //    outline:'none',
+            //    border:'none',
+            //    margin:'0px',
+            //    padding:'0px',
+            //    overflow:'hidden',
+            //})
+            this.NodeManager.canvas_element
         ])
     }
 
