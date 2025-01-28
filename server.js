@@ -37,6 +37,10 @@ class FlowPBX {
             res.sendFile(__dirname + '/public/js/' + req.params.file);
         })
 
+        app.get('/css/:file', (req, res) => {
+            res.sendFile(__dirname + '/public/css/' + req.params.file);
+        })
+
         app.post('/api/get', (req, res) => {
             console.log('GET DATA')
             let d = this.get_data(req.body.table, req.body.query).then(d => {
