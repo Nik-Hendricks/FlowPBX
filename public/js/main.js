@@ -117,6 +117,20 @@ class APP{
                 outputs: [
                     {name: 'Output', type: 'number'},
                 ],
+                widgets: [
+                    {
+                        type: 'slider',
+                        name: 'Volume',
+                        value: 50,
+                        onWidgetChange: (value) => {
+                            console.log(value)
+                        },
+                        options: {
+                            min: 0,
+                            max: 100,
+                        }
+                    }
+                ],
                 onExecute: (node) => {
                     let a = node.getInputData(0);
                     if(a !== undefined){
@@ -245,6 +259,7 @@ class APP{
             height: '100%',
             lineHeight: `${this._header_height}px`,
             display:'block',
+            cursor: 'pointer',
         }).on('click', () => {
             let sidebar = document.querySelector('#app-sidebar')
             let main_body = document.querySelector('#app-body')
@@ -736,20 +751,6 @@ class APP{
     }
 
     Routes(){
-        //let data = this.DataManager.routes
-        //return this.DataTable({
-        //    data: data,
-        //    toolbar: this.Toolbar1({prompt: this.RoutePrompt}),
-        //    columns: [
-        //        {name: 'Name', key_name: 'name'},
-        //        {name: 'Type', key_name: 'type'},
-        //        {name: 'Match', key_name: 'match'},
-        //        {name: 'Endpoint', key_name: 'endpoint'},
-        //    ],
-        //    row_onclick: (ev) => {
-        //        console.log(ev.target.parentElement.getAttribute('data-id'))
-        //    }
-        //})
         return document.createElement('div').Style({
             width: '100%',
             height: '100%',

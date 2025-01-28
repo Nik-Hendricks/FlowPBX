@@ -29,7 +29,14 @@ class NodeManager{
             props.onExecute(this);
         }
         this.nodes[props.name].title = props.name;
-
+        this.serialize_widgets = true;
+        if(props.widgets){
+            props.widgets.forEach(widget => {
+                this.nodes[props.name].prototype.addWidget(widget.type, widget.name, widget.value, widget.onWidgetChange, widget.options);
+            })
+        }
+    
+    
         console.log(this.nodes)
     }
 }
