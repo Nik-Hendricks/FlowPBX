@@ -33,6 +33,10 @@ class FlowPBX {
         app.use(express.json({limit: '50mb'}));
         app.use(cookieParser());
 
+        app.get('/js/:file', (req, res) => {
+            res.sendFile(__dirname + '/public/js/' + req.params.file);
+        })
+
         app.post('/api/get', (req, res) => {
             console.log('GET DATA')
             let d = this.get_data(req.body.table, req.body.query).then(d => {
@@ -76,6 +80,10 @@ class FlowPBX {
                 ret[t] = trunk.uac
            }
             res.json(ret);
+        })
+
+        app.get('*', (req, res) => {
+            res.sendFile(__dirname + '/public/index.html');
         })
         
         this.httpServer = httpServer;

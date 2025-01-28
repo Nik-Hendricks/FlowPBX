@@ -1,5 +1,13 @@
 import api from './api.js';
 
+let oldPushState = history.pushState;
+window.history.pushState = function pushState() {
+    window.old_url = window.location.href;
+    let ret = oldPushState.apply(this, arguments);
+    window.dispatchEvent(new Event('pushstate'));
+    window.dispatchEvent(new Event('locationchange'));
+    return ret;
+};
 
 class APP{
     constructor(){
@@ -21,23 +29,28 @@ class APP{
             this._table_header_row_background_color = '#f1f1f1';
             this.side_bar_toggled = false;
             this._side_bar_width = (window.innerWidth < 700) ? 250 : (this.side_bar_toggled) ? 250 : 50;
+            this.view_map = {
+                'extensions': this.Extensions,
+                'trunks': this.Trunks,
+                'routes': this.Routes,
+                'sip_debug': this.SipUACSView,
+                'dashboard': this.Dashboard,
+            }
+
+
             this.side_bar_items = [
                 {
                     icon: 'dashboard',
                     name: 'Dashboard',
                     callback: () => {
-                        this.content.querySelector('#app-body').InnerHTML('').Append([
-                            this.Dashboard()
-                        ])
+                        this.updateUrlParams({view: 'dashboard'})
                     }
                 },
                 {
                     icon: 'tag',
                     name:'Extensions',
                     callback: () => {
-                        this.content.querySelector('#app-body').InnerHTML('').Append([
-                            this.Extensions()
-                        ])
+                        this.updateUrlParams({view: 'extensions'})
                     }
                 },
                 {
@@ -45,9 +58,7 @@ class APP{
                     icon: 'phone',
                     name:'Trunks',
                     callback: () => {
-                        this.content.querySelector('#app-body').InnerHTML('').Append([
-                            this.Trunks()
-                        ])
+                        this.updateUrlParams({view: 'trunks'})
                     }
                 },
                 {
@@ -55,9 +66,27 @@ class APP{
                     icon: 'alt_route',
                     name:'Routes',
                     callback: () => {
-                        this.content.querySelector('#app-body').InnerHTML('').Append([
-                            this.Routes()
-                        ])
+                        this.updateUrlParams({view: 'routes'})
+
+                        let c = document.getElementById('mycanvas')
+                        c.width = c.clientWidth;
+                        c.height = c.clientHeight;
+                        
+
+                        var graph = new LGraph();
+                        var canvas = new LGraphCanvas(c, graph);
+                        
+                        var node_const = LiteGraph.createNode("basic/const");
+                        node_const.pos = [200,200];
+                        graph.add(node_const);
+                        node_const.setValue(4.5);
+                        
+                        var node_watch = LiteGraph.createNode("basic/watch");
+                        node_watch.pos = [700,200];
+                        graph.add(node_watch);
+                        
+                        node_const.connect(0, node_watch, 0 );
+                        graph.start()
                     }
                 },
                 //sip debug
@@ -65,9 +94,7 @@ class APP{
                     icon: 'bug_report',
                     name:'SIP Debug',
                     callback: () => {
-                        this.content.querySelector('#app-body').InnerHTML('').Append([
-                            this.SipUACSView()
-                        ])
+                        this.updateUrlParams({view: 'sip_debug'})
                     }
                 }
             ]
@@ -78,6 +105,18 @@ class APP{
     }
 
     init_dom(){
+    
+        window.addEventListener('locationchange', (ev) => {
+            console.log('location changed!');
+            this._route();
+        })
+
+        window.addEventListener('popstate', (ev) => {
+            console.log('hash changed!');
+            this._route();
+        })
+
+
         HTMLElement.prototype.Style = function(styles){
             for(var key in styles){
                 this.style[key] = styles[key]
@@ -127,26 +166,24 @@ class APP{
              return this;
         }
 
-        this.content = document.createElement('div').Style({
-            width: '100%',
-            height: '100%',
-            display:'block',
-        })
-
-        document.body.Append([this.content]).Style({
-            margin:'0',
-            padding:'0', 
-            width:'100%',
-            height:'100%',
-        })
     }
 
     update(){
-        this.content.InnerHTML('').Append([
+        document.body.innerHTML = '';
+        document.body.Append([
             this.AppHeader(),
             this.AppBody(),
             this.AppSideBar(this.side_bar_items)
-        ])
+        ]).Style({
+            margin: '0',
+            padding: '0',
+            position:'absolute',
+            top: '0',
+            left: '0',
+            bottom: '0',
+            right: '0',
+            fontFamily: 'Arial, sans-serif',
+        })
     }
 
     RouteViewReturn(){
@@ -274,17 +311,16 @@ class APP{
     }
 
     AppBody(){
-        let body = document.createElement('div').SetAttributes({
+        return document.createElement('div').SetAttributes({
             id: 'app-body'
         }).Style({
             width: (window.innerWidth < 700) ? '100%' : `calc(100% - ${this._side_bar_width}px)` ,
             marginLeft: (window.innerWidth < 700) ? '0' : `${this._side_bar_width}px`,
-            height: '100%',
+            height: `calc(100% - ${this._header_height}px)`,
             display: 'block',
             float: 'left',
             transition: 'ease-in-out margin-left 0.3s, ease-in-out width 0.3s',
         })
-        return body
     }
 
     Toolbar1(props){
@@ -635,7 +671,7 @@ class APP{
             ],
             row_onclick: (ev) => {
                 let extension_data = this.DataManager.extensions.filter((extension) => {
-                    return extension._id == ev.target.parentElement.getAttribute('data-id')
+                    return extension._id == ev.target.parentElement.getAttribute('data-id');
                 })
                 let d = extension_data[0]
                 d._id = ev.target.parentElement.getAttribute('data-id')
@@ -669,20 +705,35 @@ class APP{
     }
 
     Routes(){
-        let data = this.DataManager.routes
-        return this.DataTable({
-            data: data,
-            toolbar: this.Toolbar1({prompt: this.RoutePrompt}),
-            columns: [
-                {name: 'Name', key_name: 'name'},
-                {name: 'Type', key_name: 'type'},
-                {name: 'Match', key_name: 'match'},
-                {name: 'Endpoint', key_name: 'endpoint'},
-            ],
-            row_onclick: (ev) => {
-                console.log(ev.target.parentElement.getAttribute('data-id'))
-            }
-        })
+        //let data = this.DataManager.routes
+        //return this.DataTable({
+        //    data: data,
+        //    toolbar: this.Toolbar1({prompt: this.RoutePrompt}),
+        //    columns: [
+        //        {name: 'Name', key_name: 'name'},
+        //        {name: 'Type', key_name: 'type'},
+        //        {name: 'Match', key_name: 'match'},
+        //        {name: 'Endpoint', key_name: 'endpoint'},
+        //    ],
+        //    row_onclick: (ev) => {
+        //        console.log(ev.target.parentElement.getAttribute('data-id'))
+        //    }
+        //})
+        return document.createElement('div').Style({
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+        }).Append([
+            document.createElement('canvas').SetAttributes({id: 'mycanvas'}).Style({
+                width: '100%',
+                height: '100%',
+                outline:'none',
+                border:'none',
+                margin:'0px',
+                padding:'0px',
+                overflow:'hidden',
+            })
+        ])
     }
 
     SipUACSView(){
@@ -699,7 +750,7 @@ class APP{
             })
         }
 
-        return document.createElement('div').InnerHTML('SIP Debug').Style({
+        return document.createElement('div').Style({
             width: '100%',
             height: '100%',
             display: 'block',
@@ -738,7 +789,7 @@ class APP{
 
         console.log(data)
         
-        return document.createElement('div').InnerHTML('SIP Debug').Style({
+        return document.createElement('div').Style({
             width: '100%',
             height: '100%',
             display: 'block',
@@ -1098,6 +1149,69 @@ class APP{
                 ])
             })
         ]
+    }
+
+    //
+
+    hasParams(){
+        return window.location.href.split('?').length > 1;
+    }
+
+    getUrlParam(name){
+        //get the encode url param from the url is in the form ?name=value&name2=value2
+        let url = window.location.href;
+        let params = url.split('?')[1]
+        if(params){
+            params = params.split('&');
+            for(var param of params){
+                if(param.split('=')[0] == name){
+                    return param.split('=')[1]
+                }
+            }
+        }
+        return null
+    }
+
+    updateUrlParam(param, newValue) {
+        const uri = new URL(window.location.href);
+        const currentValue = uri.searchParams.get(param);
+  
+        if (currentValue === null) {
+            uri.searchParams.append(param, newValue);
+        } else {
+            uri.searchParams.set(param, newValue);
+        }
+  
+        //window.location.href = uri.toString();
+        window.location.href = uri.toString();
+    }
+
+    updateUrlParams(params){
+        const uri = new URL(window.location.href);
+        for(var key in params){
+            uri.searchParams.set(key, params[key]);
+        }
+        //window.location.href = uri
+        const newStateObj = {
+            url: uri.href,
+            title: document.title,
+        };
+  
+        // Update the URL in the browser history without refreshing the page
+        window.history.pushState(newStateObj, '', uri);
+    }
+
+    clearUrlParams(){
+        window.location.href = window.location.pathname;
+    }
+
+    _route(){
+        var view_param = this.getUrlParam('view');
+        console.log(view_param)
+        let view = this.view_map[view_param];
+        if(view !== undefined){
+            document.body.querySelector('#app-body').InnerHTML('').Append([view.bind(this)()]);
+        }
     }
 
 }
