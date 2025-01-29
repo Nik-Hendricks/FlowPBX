@@ -143,15 +143,53 @@ class FlowPBX {
             })
         })
         this.get_data('routes', {}).then(d => {
+            //d.forEach((route) => {
+            //    console.log('ADDING ROUTE')
+            //    this.VOIP.Router.addRoute({
+            //        name: route.name,
+            //        type: route.type,
+            //        match: route.match,
+            //        endpoint: route.endpoint,
+            //    })
+            //})
             d.forEach((route) => {
-                console.log('ADDING ROUTE')
-                this.VOIP.Router.addRoute({
-                    name: route.name,
-                    type: route.type,
-                    match: route.match,
-                    endpoint: route.endpoint,
-                })
+                let nodes = route.nodes;
+                //console.log(nodes);
+                if(nodes){
+                    nodes.links.forEach(link => {
+                        console.log(link)
+                        let from = nodes.nodes.filter(node => { return node.id == link[1] })[0];
+                        from.outputs = from.outputs.filter(o => {
+                            return o.links !== null;
+                        }).filter(o => {
+                            return o.links.includes(link[0]);
+                        }).map(o => {
+                            return {name: o.name, type: o.type}
+                        })[0]
+                        console.log(`${from.type} -> ${from.outputs.type} : ${from.outputs.name}`)
+                        let to = nodes.nodes.filter(node => { return node.id == link[3] })[0];
+
+                        let inputs = to.inputs.filter(i => {
+                            return i.type == link[5];
+                        })[0]
+
+
+                        //if(to.inputs.length !== undefined){
+                        //    to.inputs = to.inputs.filter(i => {
+                        //        return i.link == link[4]
+                        //    })[0]
+                        //}else{
+                        //    console.log(to.inputs)
+                        //}
+
+
+
+
+                        console.log(`${to.type} -> ${inputs.type} : ${inputs.name} : ${inputs.link}`)
+                    })
+                }
             })
+
         })
     }
     

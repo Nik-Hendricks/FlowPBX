@@ -84,109 +84,129 @@ class APP{
             this.init_dom();
             this.update()
             this.NodeManager.init_litegraph();
-
-            this.NodeManager.register_node({
-                name: 'IVR',
-                nodepath: 'VOIP',
-                inputs: [
-                    {name: 'MOH', type: 'audio_stream'},
-                    {name: 'Input', type: 'number'},
-                ],
-                outputs: [
-                    {name: '1', type: 'number'},
-                    {name: '2', type: 'number'},
-                    {name: '3', type: 'number'},
-                    {name: '4', type: 'number'},
-                    {name: '5', type: 'number'},
-                    {name: '6', type: 'number'},
-                    {name: '7', type: 'number'},
-                    {name: '8', type: 'number'},
-                    {name: '9', type: 'number'},
-                    {name: '0', type: 'number'},
-                ],
-                widgets: [
-                    {
-                        type: 'button',
-                        name: 'Add Input',
-                        callback: (value) => {
-                            console.log(value)
-                            value.addInput('Input', 'number')
-                        }
-                    }
-                ],
-                onExecute: (node) => {
-                    console.log(node)
-                }
-            })
-
-            this.NodeManager.register_node({
-                name: 'MOH',
-                nodepath: 'VOIP',
-                inputs: [
-                    {name: 'Input', type: 'number'},
-                ],
-                outputs: [
-                    {name: 'Output', type: 'audio_stream'},
-                ],
-                widgets: [
-                    {
-                        type: 'slider',
-                        name: 'Volume',
-                        value: 50,
-                        callback: (value) => {
-                            console.log(value)
-                        },
-                        options: {
-                            min: 0,
-                            max: 100,
-                        }
-                    },
-                    {
-                        type:'text',
-                        name: 'Text',
-                        value: 'Hello World',
-                        onWidgetChange: (value) => {
-                            console.log(value)
-                        }
-                    }
-                ],
-                onExecute: (node) => {
-                    console.log(node)
-                }
-            })
-
-            this.NodeManager.register_node({
-                name: 'Route Match',
-                nodepath: 'VOIP',
-                inputs: [],
-                outputs: [
-                    {name: 'Match', type: 'number'},
-                ],
-                widgets: [
-                    {
-                        type: 'text',
-                        name: 'Match',
-                        value: '1234',
-                        callback: (value) => {
-                            console.log(value)
-                        }
-                    }
-                ]
-            })
-
-
-            var node_const = LiteGraph.createNode("basic/const");
-            node_const.pos = [200,200];
-            this.NodeManager.graph.add(node_const);
-            node_const.setValue(4.5);
-            
-            var node_watch = LiteGraph.createNode("basic/watch");
-            node_watch.pos = [700,200];
-            this.NodeManager.graph.add(node_watch);
-            
-            node_const.connect(0, node_watch, 0 );
-
+            this.register_nodes();
+            this._route()
         })()
+    }
+
+    register_nodes(){
+
+        //IVR Node
+        this.NodeManager.register_node({
+            name: 'IVR',
+            nodepath: 'VOIP',
+            inputs: [
+                {name: 'MOH', type: 'audio_stream'},
+                {name: 'Input', type: 'number'},
+            ],
+            outputs: [
+                {name: '1', type: 'number'},
+                {name: '2', type: 'number'},
+                {name: '3', type: 'number'},
+                {name: '4', type: 'number'},
+                {name: '5', type: 'number'},
+                {name: '6', type: 'number'},
+                {name: '7', type: 'number'},
+                {name: '8', type: 'number'},
+                {name: '9', type: 'number'},
+                {name: '0', type: 'number'},
+            ],
+            widgets: [
+                {
+                    type: 'button',
+                    name: 'Add Input',
+                    callback: (value) => {
+                        console.log(value)
+                        value.addInput('Input', 'number')
+                    }
+                }
+            ],
+            onExecute: (node) => {
+                console.log(node)
+            }
+        })
+
+        //MOH Node
+        this.NodeManager.register_node({
+            name: 'MOH',
+            nodepath: 'VOIP',
+            inputs: [
+                {name: 'Input', type: 'number'},
+            ],
+            outputs: [
+                {name: 'Output', type: 'audio_stream'},
+            ],
+            widgets: [
+                {
+                    type: 'slider',
+                    name: 'Volume',
+                    value: 50,
+                    callback: (value) => {
+                        console.log(value)
+                    },
+                    options: {
+                        min: 0,
+                        max: 100,
+                    }
+                },
+                {
+                    type:'text',
+                    name: 'Text',
+                    value: 'Hello World',
+                    onWidgetChange: (value) => {
+                        console.log(value)
+                    }
+                }
+            ],
+            onExecute: (node) => {
+                console.log(node)
+            }
+        })
+
+        //Route Node
+        this.NodeManager.register_node({
+            name: 'Route Match',
+            nodepath: 'VOIP',
+            inputs: [],
+            outputs: [
+                {name: 'Match', type: 'number'},
+            ],
+            widgets: [
+                {
+                    type: 'text',
+                    name: 'Match',
+                    value: '1234',
+                    callback: (value) => {
+                        console.log(value)
+                    }
+                }
+            ]
+        })
+
+        //User Endpoint Node
+        this.NodeManager.register_node({
+            name: 'User Endpoint',
+            nodepath: 'VOIP',
+            inputs: [
+                {name: 'Input', type: 'number'},
+            ],
+            outputs: [],
+            widgets: [
+                {
+                    type: "combo",
+                    name: "User",
+                    value: "User 1",
+                    options:{
+                        values: this.DataManager.extensions.map((user) => {
+                            return user.extension
+                        })
+                    },
+                    callback: (value) => {
+                        console.log(value)
+                    }
+                }
+            ]
+        })
     }
 
     init_dom(){
@@ -533,17 +553,33 @@ class APP{
         return this.Prompt({
             title: 'Add Route',
             inputs: [
-                this.PromptTypeInput({value: props.type}),
-                this.PromptRouteTypeInput({value: props.endpoint_type}),
                 {value: props.name, placeholder: 'Name', key_name: 'name'},
                 {value: props.match, placeholder: 'Match', key_name: 'match'},
-                this.PromptRouteEndpointInput({value: props.endpoint, endpoint_type: props.endpoint_type}),
             ],
-            callback: async (props) => {
-                let r = await this.api.set_data({table: 'routes', data: props})
+            callback: async (p) => {
+                var node_const = LiteGraph.createNode("VOIP/User Endpoint");
+                node_const.pos = [200,200];
+                this.NodeManager.graph.add(node_const);
+                p.nodes = this.NodeManager.graph.serialize()
+                //window.localStorage.setItem('selected_route_id', p._id)
+                let r = await this.api.set_data({table: 'routes', data: p})
                 console.log(r)
             }
         })
+        //return this.Prompt({
+        //    title: 'Add Route',
+        //    inputs: [
+        //        this.PromptTypeInput({value: props.type}),
+        //        this.PromptRouteTypeInput({value: props.endpoint_type}),
+        //        {value: props.name, placeholder: 'Name', key_name: 'name'},
+        //        {value: props.match, placeholder: 'Match', key_name: 'match'},
+        //        this.PromptRouteEndpointInput({value: props.endpoint, endpoint_type: props.endpoint_type}),
+        //    ],
+        //    callback: async (props) => {
+        //        let r = await this.api.set_data({table: 'routes', data: props})
+        //        console.log(r)
+        //    }
+        //})
     }
 
     Dashboard(){
@@ -787,6 +823,81 @@ class APP{
     }
 
     Routes(){
+        //JSON.parse(window.localStorage.getItem('selected_route')).nodes
+        if(window.localStorage.getItem('selected_route_id')){
+            console.log('existing nodes')
+            let selected_route_id = window.localStorage.getItem('selected_route_id')
+            let existing_nodes = this.DataManager.routes.filter((route) => {
+                return route._id == selected_route_id
+            })[0].nodes
+            this.NodeManager.graph.configure(existing_nodes)
+        }
+        document.getElementById('app-body').InnerHTML('').Append([
+            document.createElement('select').Style({
+                width:'150px',
+                height:'35px',
+                display:'block',
+                float:'left',
+                position:'absolute',
+                zIndex:'1000',
+                marginTop:'10px',
+                marginLeft:'10px',
+                textAlign:'center',
+                background:'grey',
+                outline:'none',
+                borderRadius:'5px',
+            }).Append([
+                document.createElement('option').InnerHTML('Inbound Route'),
+                ...this.DataManager.routes.map((route) => {
+                    return document.createElement('option').InnerHTML(route.name)
+                })
+            ]).on('change', (ev) => {
+                let database_data = this.DataManager.routes.filter((route) => {return route.name == ev.target.value})[0]
+                window.localStorage.setItem('selected_route_id', database_data._id) 
+                this.NodeManager.graph.configure(database_data.nodes)
+            }).SetAttributes({id:'route-select'}),
+            document.createElement('div').Style({
+                width:'35px',
+                height:'35px',
+                display:'block',
+                float:'left',
+                position:'absolute',
+                zIndex:'1000',
+                marginTop:'10px',
+                marginLeft:'170px',
+                textAlign:'center',
+                lineHeight:'35px',
+                color:'white',
+                cursor:'pointer',
+            }).SetAttributes({class:'material-icons'}).InnerHTML('add').on('click', () => {
+                this.RoutePrompt()
+            }),
+            document.createElement('div').Style({
+                width:'35px',
+                height:'35px',
+                display:'block',
+                float:'left',
+                position:'absolute',
+                zIndex:'1000',
+                marginTop:'10px',
+                marginLeft:'210px',
+                textAlign:'center',
+                lineHeight:'35px',
+                color:'white',
+                cursor:'pointer',
+            }).SetAttributes({class:'material-icons'}).InnerHTML('save').on('click', () => {
+                let selected_route_id = window.localStorage.getItem('selected_route_id')
+                this.api.set_data({table: 'routes', data: {_id: selected_route_id, nodes: this.NodeManager.graph.serialize()}})
+            }),
+
+        ])
+
+        if(window.localStorage.getItem('selected_route_id')){
+            let id = window.localStorage.getItem('selected_route_id')
+            document.getElementById('route-select').value = this.DataManager.routes.filter((route) => {return route._id == id})[0].name
+        }
+
+
         return document.createElement('div').Style({
             width: '100%',
             height: '100%',

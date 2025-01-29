@@ -1,5 +1,5 @@
 class NodeManager{
-    constructor(){
+    constructor(app){
         this.nodes = {};
     }
 
