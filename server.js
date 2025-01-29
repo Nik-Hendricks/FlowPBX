@@ -13,15 +13,21 @@ class FlowPBX {
     constructor(){
         this.init_express();
         this.init_DB();
-        this.init_VOIP();
-        this.init_nodes();
-        this.http_io.on('connection', (socket) => {
-            console.log('a user connected');
-            socket.on('disconnect', () => {
-                console.log('user disconnected');
-            });
-        });
-        this.update_voip_users();
+        this.get_data('extensions', {}).then(extensions => {
+            this.get_data('trunks', {}).then(trunks => {
+                this.get_data('routes', {}).then(routes => {
+                    this.init_VOIP();
+                    this.init_nodes(extensions);
+                    this.http_io.on('connection', (socket) => {
+                        console.log('a user connected');
+                        socket.on('disconnect', () => {
+                            console.log('user disconnected');
+                        });
+                    });
+                    this.update_voip_users(extensions, trunks, routes);
+                })
+            })
+        })
     }
     
     
@@ -124,21 +130,20 @@ class FlowPBX {
         }
     }
     
-    update_voip_users(){
-        this.get_data('extensions', {}).then(d => {
-            d.forEach((user) => {
-                console.log('ADDING USER')
-                this.VOIP.UserManager.addUser({
-                    username:user.username,
-                    password:user.password,
-                    extension:user.extension,
-                    ip:undefined,
-                    port:undefined,
-                })
+    update_voip_users(extensions, trunks, routes){
+        extensions.forEach((user) => {
+            console.log('ADDING USER')
+            this.VOIP.UserManager.addUser({
+                username:user.username,
+                password:user.password,
+                extension:user.extension,
+                ip:undefined,
+                port:undefined,
             })
         })
-        this.get_data('trunks', {}).then(d => {
-            d.forEach((trunk) => {
+        
+
+            trunks.forEach((trunk) => {
                 console.log('ADDING TRUNK')
                 this.VOIP.TrunkManager.addTrunk({
                     name:trunk.trunk_name,
@@ -150,8 +155,8 @@ class FlowPBX {
                     callId:trunk.callId,
                 })
             })
-        })
-        this.get_data('routes', {}).then(d => {
+        
+       
             //d.forEach((route) => {
             //    console.log('ADDING ROUTE')
             //    this.VOIP.Router.addRoute({
@@ -161,7 +166,7 @@ class FlowPBX {
             //        endpoint: route.endpoint,
             //    })
             //})
-            d.forEach((route) => {
+            routes.forEach((route) => {
                 let nodes = route.nodes;
                 //console.log(nodes);
                 if(nodes){
@@ -173,6 +178,7 @@ class FlowPBX {
                             return o.links.includes(link[0]);
                         })[0]
                         console.log(`FROM => ${from.type} -> ${output.type} : ${output.name}`)
+                        console.log(this.nodes.filter(node => { return node.name == from.type.split('/')[1] })[0].onServerExecute)
                         let to = nodes.nodes.filter(node => { return node.id == link[3] })[0];
                         let input = to.inputs[link[4]];
                         console.log(`TO => ${to.type} -> ${input.type} : ${input.name} : ${input.link}`)
@@ -180,7 +186,7 @@ class FlowPBX {
                 }
             })
 
-        })
+        
     }
     
     init_VOIP(){
@@ -220,7 +226,7 @@ class FlowPBX {
         })
     }
 
-    init_nodes(){
+    init_nodes(extensions){
         this.nodes = [
             {
                 name: 'IVR',
@@ -252,6 +258,9 @@ class FlowPBX {
                     }
                 ],
                 onExecute: (node) => {
+                    console.log(node)
+                },
+                onServerExecute: (node) => {
                     console.log(node)
                 }
             },
@@ -288,6 +297,9 @@ class FlowPBX {
                 ],
                 onExecute: (node) => {
                     console.log(node)
+                },
+                onServerExecute: (node) => {
+                    console.log(node)
                 }
             },
             {
@@ -306,7 +318,10 @@ class FlowPBX {
                             console.log(value)
                         }
                     }
-                ]
+                ],
+                onServerExecute: (node) => {
+                    console.log(node)
+                }
             },
             {
                 name: 'User Endpoint',
@@ -321,14 +336,17 @@ class FlowPBX {
                         name: "User",
                         value: "User 1",
                         options:{
-                            values: ['User 1', 'User 2', 'User 3']
+                            values: extensions.map(e => { return e.username })
                             
                         },
                         callback: (value) => {
                             console.log(value)
                         }
                     }
-                ]
+                ],
+                onServerExecute: (value) => {
+                    console.log(value)
+                }
             }
         ]
     }
