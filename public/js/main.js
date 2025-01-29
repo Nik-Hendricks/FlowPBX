@@ -85,10 +85,11 @@ class APP{
             this.update()
             this.NodeManager.init_litegraph();
 
-            this.NodeManager.Node({
+            this.NodeManager.register_node({
                 name: 'IVR',
                 nodepath: 'VOIP',
                 inputs: [
+                    {name: 'MOH', type: 'audio_stream'},
                     {name: 'Input', type: 'number'},
                 ],
                 outputs: [
@@ -103,41 +104,76 @@ class APP{
                     {name: '9', type: 'number'},
                     {name: '0', type: 'number'},
                 ],
+                widgets: [
+                    {
+                        type: 'button',
+                        name: 'Add Input',
+                        callback: (value) => {
+                            console.log(value)
+                            value.addInput('Input', 'number')
+                        }
+                    }
+                ],
                 onExecute: (node) => {
-
+                    console.log(node)
                 }
             })
 
-            this.NodeManager.Node({
+            this.NodeManager.register_node({
                 name: 'MOH',
                 nodepath: 'VOIP',
                 inputs: [
                     {name: 'Input', type: 'number'},
                 ],
                 outputs: [
-                    {name: 'Output', type: 'number'},
+                    {name: 'Output', type: 'audio_stream'},
                 ],
                 widgets: [
                     {
                         type: 'slider',
                         name: 'Volume',
                         value: 50,
-                        onWidgetChange: (value) => {
+                        callback: (value) => {
                             console.log(value)
                         },
                         options: {
                             min: 0,
                             max: 100,
                         }
+                    },
+                    {
+                        type:'text',
+                        name: 'Text',
+                        value: 'Hello World',
+                        onWidgetChange: (value) => {
+                            console.log(value)
+                        }
                     }
                 ],
                 onExecute: (node) => {
-                    let a = node.getInputData(0);
-                    if(a !== undefined){
-                        node.setOutputData(0, a);
-                    }
+                    console.log(node)
                 }
             })
+
+            this.NodeManager.register_node({
+                name: 'Route Match',
+                nodepath: 'VOIP',
+                inputs: [],
+                outputs: [
+                    {name: 'Match', type: 'number'},
+                ],
+                widgets: [
+                    {
+                        type: 'text',
+                        name: 'Match',
+                        value: '1234',
+                        callback: (value) => {
+                            console.log(value)
+                        }
+                    }
+                ]
+            })
+
 
             var node_const = LiteGraph.createNode("basic/const");
             node_const.pos = [200,200];

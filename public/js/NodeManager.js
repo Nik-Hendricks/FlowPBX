@@ -16,30 +16,30 @@ class NodeManager{
         this.graph.start();
     }
 
-    Node(props){
-        this.nodes[props.name] = function () {};
-        LiteGraph.registerNodeType(`${props.nodepath}/${props.name}`, this.nodes[props.name]);
-        props.inputs.forEach(input => {
-            this.nodes[props.name].prototype.addInput(input.name, input.type);
-        });
-        props.outputs.forEach(output => {
-            this.nodes[props.name].prototype.addOutput(output.name, output.type);
-        });
-        this.nodes[props.name].prototype.onExecute = function(){
-            props.onExecute(this);
+    register_node(props){
+        function generic(){
+            props.inputs.forEach(input => {
+                this.addInput(input.name, input.type);
+            });
+            props.outputs.forEach(output => {
+                this.addOutput(output.name, output.type);
+            });
+            this.serialize_widgets = true;
+            if(props.widgets){
+                props.widgets.forEach(widget => {
+                    this.addWidget(widget.type, widget.name, widget.value, () => {
+                        widget.callback(this);
+                    }, widget.options);
+                })
+            }
+            this.properties = { precision: 1 };
         }
-        this.nodes[props.name].title = props.name;
-        this.serialize_widgets = true;
-        if(props.widgets){
-            props.widgets.forEach(widget => {
-                this.nodes[props.name].prototype.addWidget(widget.type, widget.name, widget.value, widget.onWidgetChange, widget.options);
-            })
-        }
-    
-    
-        console.log(this.nodes)
+        generic.title = props.name;
+        LiteGraph.registerNodeType(`${props.nodepath}/${props.name}`, generic);
     }
 }
+
+
 
 
 export default NodeManager;
