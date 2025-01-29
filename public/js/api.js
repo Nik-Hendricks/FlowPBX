@@ -50,7 +50,21 @@ const api = {
                 resolve(data);
             });
         })
-    }
+    },
+
+    get_litegraph_nodes: async () => {
+        return new Promise(resolve => {
+            fetch('/api/get_litegraph_nodes', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json()).then(data => {
+                console.log(data)
+                resolve(data);
+            });
+        })
+    },
 };
 
 export default api;

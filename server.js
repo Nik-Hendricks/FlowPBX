@@ -14,6 +14,7 @@ class FlowPBX {
         this.init_express();
         this.init_DB();
         this.init_VOIP();
+        this.init_nodes();
         this.http_io.on('connection', (socket) => {
             console.log('a user connected');
             socket.on('disconnect', () => {
@@ -75,6 +76,14 @@ class FlowPBX {
                     this.update_voip_users();
                 })
             }
+        })
+
+        app.get('/api/get_litegraph_nodes', (req, res) => {
+            let ret = {};
+            this.nodes.forEach(node => {
+                ret[node.name] = node;
+            })
+            res.send(ret);
         })
 
         app.get('/pbx/uacs/', (req, res) => {
@@ -158,17 +167,15 @@ class FlowPBX {
                 if(nodes){
                     nodes.links.forEach(link => {
                         let from = nodes.nodes.filter(node => { return node.id == link[1] })[0];
-                        from.outputs = from.outputs.filter(o => {
+                        let output = from.outputs.filter(o => {
                             return o.links !== null;
                         }).filter(o => {
                             return o.links.includes(link[0]);
-                        }).map(o => {
-                            return {name: o.name, type: o.type}
                         })[0]
-                        console.log(`FROM => ${from.type} -> ${from.outputs.type} : ${from.outputs.name}`)
+                        console.log(`FROM => ${from.type} -> ${output.type} : ${output.name}`)
                         let to = nodes.nodes.filter(node => { return node.id == link[3] })[0];
-                        let inputs = to.inputs[link[4]];
-                        console.log(`TO => ${to.type} -> ${inputs.type} : ${inputs.name} : ${inputs.link}`)
+                        let input = to.inputs[link[4]];
+                        console.log(`TO => ${to.type} -> ${input.type} : ${input.name} : ${input.link}`)
                     })
                 }
             })
@@ -211,6 +218,119 @@ class FlowPBX {
                 }
             }
         })
+    }
+
+    init_nodes(){
+        this.nodes = [
+            {
+                name: 'IVR',
+                nodepath: 'VOIP',
+                inputs: [
+                    {name: 'MOH', type: 'audio_stream'},
+                    {name: 'Input', type: 'number'},
+                ],
+                outputs: [
+                    {name: '1', type: 'number'},
+                    {name: '2', type: 'number'},
+                    {name: '3', type: 'number'},
+                    {name: '4', type: 'number'},
+                    {name: '5', type: 'number'},
+                    {name: '6', type: 'number'},
+                    {name: '7', type: 'number'},
+                    {name: '8', type: 'number'},
+                    {name: '9', type: 'number'},
+                    {name: '0', type: 'number'},
+                ],
+                widgets: [
+                    {
+                        type: 'button',
+                        name: 'Add Input',
+                        callback: (value) => {
+                            console.log(value)
+                            value.addInput('Input', 'number')
+                        }
+                    }
+                ],
+                onExecute: (node) => {
+                    console.log(node)
+                }
+            },
+            {
+                name: 'MOH',
+                nodepath: 'VOIP',
+                inputs: [
+                    {name: 'Input', type: 'number'},
+                ],
+                outputs: [
+                    {name: 'Output', type: 'audio_stream'},
+                ],
+                widgets: [
+                    {
+                        type: 'slider',
+                        name: 'Volume',
+                        value: 50,
+                        callback: (value) => {
+                            console.log(value)
+                        },
+                        options: {
+                            min: 0,
+                            max: 100,
+                        }
+                    },
+                    {
+                        type:'text',
+                        name: 'Text',
+                        value: 'Hello World',
+                        onWidgetChange: (value) => {
+                            console.log(value)
+                        }
+                    }
+                ],
+                onExecute: (node) => {
+                    console.log(node)
+                }
+            },
+            {
+                name: 'Route Match',
+                nodepath: 'VOIP',
+                inputs: [],
+                outputs: [
+                    {name: 'Match', type: 'number'},
+                ],
+                widgets: [
+                    {
+                        type: 'text',
+                        name: 'Match',
+                        value: '1234',
+                        callback: (value) => {
+                            console.log(value)
+                        }
+                    }
+                ]
+            },
+            {
+                name: 'User Endpoint',
+                nodepath: 'VOIP',
+                inputs: [
+                    {name: 'Input', type: 'number'},
+                ],
+                outputs: [],
+                widgets: [
+                    {
+                        type: "combo",
+                        name: "User",
+                        value: "User 1",
+                        options:{
+                            values: ['User 1', 'User 2', 'User 3']
+                            
+                        },
+                        callback: (value) => {
+                            console.log(value)
+                        }
+                    }
+                ]
+            }
+        ]
     }
         
 }

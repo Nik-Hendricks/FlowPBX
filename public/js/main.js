@@ -84,129 +84,18 @@ class APP{
             this.init_dom();
             this.update()
             this.NodeManager.init_litegraph();
-            this.register_nodes();
-            this._route()
+            await this.register_nodes();
+            this._route();
         })()
     }
 
-    register_nodes(){
-
-        //IVR Node
-        this.NodeManager.register_node({
-            name: 'IVR',
-            nodepath: 'VOIP',
-            inputs: [
-                {name: 'MOH', type: 'audio_stream'},
-                {name: 'Input', type: 'number'},
-            ],
-            outputs: [
-                {name: '1', type: 'number'},
-                {name: '2', type: 'number'},
-                {name: '3', type: 'number'},
-                {name: '4', type: 'number'},
-                {name: '5', type: 'number'},
-                {name: '6', type: 'number'},
-                {name: '7', type: 'number'},
-                {name: '8', type: 'number'},
-                {name: '9', type: 'number'},
-                {name: '0', type: 'number'},
-            ],
-            widgets: [
-                {
-                    type: 'button',
-                    name: 'Add Input',
-                    callback: (value) => {
-                        console.log(value)
-                        value.addInput('Input', 'number')
-                    }
-                }
-            ],
-            onExecute: (node) => {
-                console.log(node)
-            }
-        })
-
-        //MOH Node
-        this.NodeManager.register_node({
-            name: 'MOH',
-            nodepath: 'VOIP',
-            inputs: [
-                {name: 'Input', type: 'number'},
-            ],
-            outputs: [
-                {name: 'Output', type: 'audio_stream'},
-            ],
-            widgets: [
-                {
-                    type: 'slider',
-                    name: 'Volume',
-                    value: 50,
-                    callback: (value) => {
-                        console.log(value)
-                    },
-                    options: {
-                        min: 0,
-                        max: 100,
-                    }
-                },
-                {
-                    type:'text',
-                    name: 'Text',
-                    value: 'Hello World',
-                    onWidgetChange: (value) => {
-                        console.log(value)
-                    }
-                }
-            ],
-            onExecute: (node) => {
-                console.log(node)
-            }
-        })
-
-        //Route Node
-        this.NodeManager.register_node({
-            name: 'Route Match',
-            nodepath: 'VOIP',
-            inputs: [],
-            outputs: [
-                {name: 'Match', type: 'number'},
-            ],
-            widgets: [
-                {
-                    type: 'text',
-                    name: 'Match',
-                    value: '1234',
-                    callback: (value) => {
-                        console.log(value)
-                    }
-                }
-            ]
-        })
-
-        //User Endpoint Node
-        this.NodeManager.register_node({
-            name: 'User Endpoint',
-            nodepath: 'VOIP',
-            inputs: [
-                {name: 'Input', type: 'number'},
-            ],
-            outputs: [],
-            widgets: [
-                {
-                    type: "combo",
-                    name: "User",
-                    value: "User 1",
-                    options:{
-                        values: this.DataManager.extensions.map((user) => {
-                            return user.extension
-                        })
-                    },
-                    callback: (value) => {
-                        console.log(value)
-                    }
-                }
-            ]
-        })
+    async register_nodes(){
+        let nodes = await this.api.get_litegraph_nodes();
+        for(var node in nodes){
+            node = nodes[node]
+            this.NodeManager.register_node(node)
+        }
+        return {success: true}        
     }
 
     init_dom(){
