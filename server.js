@@ -157,7 +157,6 @@ class FlowPBX {
                 //console.log(nodes);
                 if(nodes){
                     nodes.links.forEach(link => {
-                        console.log(link)
                         let from = nodes.nodes.filter(node => { return node.id == link[1] })[0];
                         from.outputs = from.outputs.filter(o => {
                             return o.links !== null;
@@ -166,26 +165,10 @@ class FlowPBX {
                         }).map(o => {
                             return {name: o.name, type: o.type}
                         })[0]
-                        console.log(`${from.type} -> ${from.outputs.type} : ${from.outputs.name}`)
+                        console.log(`FROM => ${from.type} -> ${from.outputs.type} : ${from.outputs.name}`)
                         let to = nodes.nodes.filter(node => { return node.id == link[3] })[0];
-
-                        let inputs = to.inputs.filter(i => {
-                            return i.type == link[5];
-                        })[0]
-
-
-                        //if(to.inputs.length !== undefined){
-                        //    to.inputs = to.inputs.filter(i => {
-                        //        return i.link == link[4]
-                        //    })[0]
-                        //}else{
-                        //    console.log(to.inputs)
-                        //}
-
-
-
-
-                        console.log(`${to.type} -> ${inputs.type} : ${inputs.name} : ${inputs.link}`)
+                        let inputs = to.inputs[link[4]];
+                        console.log(`TO => ${to.type} -> ${inputs.type} : ${inputs.name} : ${inputs.link}`)
                     })
                 }
             })
