@@ -292,9 +292,12 @@ class FlowPBX {
                     {
                         type: 'button',
                         name: 'Add Input',
-                        callback: (value) => {
-                            console.log(value)
-                            value.addInput('Input', 'number')
+                        widget_action: {
+                            name: 'add_input',
+                            data:{
+                                name: 'Input',
+                                data_type: 'call_flow'
+                            }
                         }
                     }
                 ],

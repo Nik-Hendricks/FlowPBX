@@ -1,6 +1,7 @@
 class NodeManager{
     constructor(app){
         this.nodes = {};
+        this.init_widget_actions();
     }
 
     init_litegraph(){
@@ -17,6 +18,7 @@ class NodeManager{
     }
 
     register_node(props){
+        let nm = this;
         function generic(){
             props.inputs.forEach(input => {
                 this.addInput(input.name, input.type);
@@ -28,7 +30,7 @@ class NodeManager{
             if(props.widgets){
                 props.widgets.forEach(widget => {
                     this.addWidget(widget.type, widget.name, widget.value, () => {
-                        widget.callback(this);
+                        nm.widget_actions[widget.widget_action.name]({node: this, ...widget.widget_action.data});
                     }, widget.options);
                 })
             }
@@ -36,6 +38,14 @@ class NodeManager{
         }
         generic.title = props.name;
         LiteGraph.registerNodeType(`${props.nodepath}/${props.name}`, generic);
+    }
+
+    init_widget_actions(){
+        this.widget_actions = {
+            'add_input': (props) => {
+                props.node.addInput(props.name, props.data_type);
+            },
+        }
     }
 }
 
