@@ -13,6 +13,7 @@ class FlowPBX {
     constructor(){
         this.init_express();
         this.init_DB();
+        this.LiveData = {};
         this.get_data('extensions', {}).then(extensions => {
             this.get_data('trunks', {}).then(trunks => {
                 this.get_data('routes', {}).then(routes => {
@@ -79,7 +80,13 @@ class FlowPBX {
             }else{
                 table.insert(data, (err, newDoc) => {
                     res.send({status:'inserted'})
-                    this.update_voip_users();
+                    this.get_data('extensions', {}).then(extensions => {
+                        this.get_data('trunks', {}).then(trunks => {
+                            this.get_data('routes', {}).then(routes => {
+                                this.update_voip_users(extensions, trunks, routes);
+                            })
+                        })
+                    })
                 })
             }
         })
@@ -94,8 +101,8 @@ class FlowPBX {
 
         app.get('/pbx/uacs/', (req, res) => {
             let ret = {};
-           for(var t in this.VOIP.TrunkManager.trunks){
-                let trunk = this.VOIP.TrunkManager.trunks[t];
+           for(var t in this.VOIP.TrunkManager.items){
+                let trunk = this.VOIP.TrunkManager.items[t];
                 ret[t] = trunk.uac
            }
             res.json(ret);
@@ -131,6 +138,11 @@ class FlowPBX {
     }
     
     update_voip_users(extensions, trunks, routes){
+        console.log({
+            extensions: extensions,
+            trunks: trunks,
+            routes: routes
+        })
         extensions.forEach((user) => {
             console.log('ADDING USER')
             this.VOIP.UserManager.addUser({
@@ -156,27 +168,12 @@ class FlowPBX {
                 })
             })
         
-       
-            //d.forEach((route) => {
-            //    console.log('ADDING ROUTE')
-            //    this.VOIP.Router.addRoute({
-            //        name: route.name,
-            //        type: route.type,
-            //        match: route.match,
-            //        endpoint: route.endpoint,
-            //    })
-            //})
             routes.forEach((route) => {
                 let nodes = route.nodes;
-                //console.log(nodes);
                 if(nodes){
                     nodes.links.forEach(link => {
                         let from = nodes.nodes.filter(node => { return node.id == link[1] })[0];
-                        let output = from.outputs.filter(o => {
-                            return o.links !== null;
-                        }).filter(o => {
-                            return o.links.includes(link[0]);
-                        })[0]
+                        let output = from.outputs.filter(o => {return o.links !== null}).filter(o => {return o.links.includes(link[0])})[0]
                         console.log(`FROM => ${from.type} -> ${output.type} : ${output.name}`)
                         console.log(this.nodes.filter(node => { return node.name == from.type.split('/')[1] })[0].onServerExecute)
                         let to = nodes.nodes.filter(node => { return node.id == link[3] })[0];
@@ -185,8 +182,6 @@ class FlowPBX {
                     })
                 }
             })
-
-        
     }
     
     init_VOIP(){
