@@ -81,15 +81,15 @@ class FlowPBX {
             }else{
                 table.insert(data, (err, newDoc) => {
                     res.send({status:'inserted'})
-                    this.get_data('extensions', {}).then(extensions => {
-                        this.get_data('trunks', {}).then(trunks => {
-                            this.get_data('routes', {}).then(routes => {
-                                this.update_voip_users(extensions, trunks, routes);
-                            })
-                        })
-                    })
                 })
             }
+            this.get_data('extensions', {}).then(extensions => {
+                this.get_data('trunks', {}).then(trunks => {
+                    this.get_data('routes', {}).then(routes => {
+                        this.update_voip_users(extensions, trunks, routes);
+                    })
+                })
+            })
         })
 
         app.get('/api/get_litegraph_nodes', (req, res) => {
@@ -169,6 +169,14 @@ class FlowPBX {
                 })
             })
         
+            //clear non user routes
+            for(var r in this.VOIP.Router.routes){
+                if(this.VOIP.Router.routes[r].endpoint_type !== 'extension'){
+                    delete this.VOIP.Router.routes[r];
+                }
+            }
+
+
             routes.forEach((route) => {
                 let nodes = route.nodes;
                 if(nodes){
@@ -189,14 +197,14 @@ class FlowPBX {
                     console.log(next_node)
                     let IVR_ID  = Math.floor(Math.random() * 1000000000);
                     this.VOIP.IVRManager.addIVR({
-                        name: IVR_ID
+                        name: next_node.widgets_values[0],
                     })
                         
                     this.VOIP.Router.addRoute({
-                        name: match,
+                        name: next_node.widgets_values[0],
                         type: next_node.type,
                         match: match,
-                        endpoint: IVR_ID,
+                        endpoint: next_node.widgets_values[0],
                     })
 
 
@@ -251,6 +259,13 @@ class FlowPBX {
                         console.log(response)
                     })
                     
+                }else if(d.type == 'BYE'){
+                    this.VOIP.server_send(this.VOIP.response({
+                        isResponse: true,
+                        statusCode: 200,
+                        statusText: 'OK',
+                        headers: parsed_headers,
+                    }), parsed_headers.Contact.contact.ip, parsed_headers.Contact.contact.port)
                 }else{
                     console.log('UNKNOWN MESSAGE')
                     console.log(d)

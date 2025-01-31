@@ -30,7 +30,9 @@ class NodeManager{
             if(props.widgets){
                 props.widgets.forEach(widget => {
                     this.addWidget(widget.type, widget.name, widget.value, () => {
-                        nm.widget_actions[widget.widget_action.name]({node: this, ...widget.widget_action.data});
+                        if(widget.widget_action){
+                            nm.widget_actions[widget.widget_action.name]({node: this, ...widget.widget_action.data});
+                        }
                     }, widget.options);
                 })
             }
