@@ -155,79 +155,71 @@ class FlowPBX {
             })
         })
         
-
-            trunks.forEach((trunk) => {
-                console.log('ADDING TRUNK')
-                this.VOIP.TrunkManager.addTrunk({
-                    name:trunk.trunk_name,
-                    type:trunk.type,
-                    username:trunk.username,
-                    password:trunk.password,
-                    ip:trunk.ip,
-                    port:trunk.port,
-                    callId:trunk.callId,
-                })
+        trunks.forEach((trunk) => {
+            console.log('ADDING TRUNK')
+            this.VOIP.TrunkManager.addTrunk({
+                name:trunk.trunk_name,
+                type:trunk.type,
+                username:trunk.username,
+                password:trunk.password,
+                ip:trunk.ip,
+                port:trunk.port,
+                callId:trunk.callId,
             })
-        
-            //clear non user routes
-            for(var r in this.VOIP.Router.routes){
-                if(this.VOIP.Router.routes[r].endpoint_type !== 'extension'){
-                    delete this.VOIP.Router.routes[r];
-                }
+        })
+    
+        //clear non user routes
+        for(var r in this.VOIP.Router.routes){
+            if(this.VOIP.Router.routes[r].endpoint_type !== 'extension'){
+                delete this.VOIP.Router.routes[r];
             }
-
-
-            routes.forEach((route) => {
-                let nodes = route.nodes;
-                if(nodes){
-                    let obj = {}
-                    let match_link = nodes.links.filter(link => { return nodes.nodes.filter(node => { return node.id == link[1]})[0].type == 'VOIP/Route Match' })[0];
-                    let match_node = nodes.nodes.filter(n => {return n.id == match_link[1]})[0];
-                    let match = match_node.widgets_values[0]
-                    let next_node = nodes.nodes.filter(n => {return n.id == match_link[3]})[0];
+        }
+        routes.forEach((route) => {
+            let nodes = route.nodes;
+            if(nodes){
+                let obj = {}
+                let match_link = nodes.links.filter(link => { return nodes.nodes.filter(node => { return node.id == link[1]})[0].type == 'VOIP/Route Match' })[0];
+                let match_node = nodes.nodes.filter(n => {return n.id == match_link[1]})[0];
+                let match = match_node.widgets_values[0]
+                let next_node = nodes.nodes.filter(n => {return n.id == match_link[3]})[0];
+                
+                console.log('MATCH NODE')
+                console.log(match_node)
+                console.log(match)
+                console.log(match_node.outputs[0].links)
+                console.log('NEXT NODE')
+                console.log(next_node)
+                let IVR_ID  = Math.floor(Math.random() * 1000000000);
+                this.VOIP.IVRManager.addIVR({
+                    name: next_node.widgets_values[0],
+                })
                     
+                this.VOIP.Router.addRoute({
+                    name: next_node.widgets_values[0],
+                    type: next_node.type,
+                    match: match,
+                    endpoint: next_node.widgets_values[0],
+                })
+                //nodes.links.forEach(link => {
+                //    let from = nodes.nodes.filter(node => { return node.id == link[1] })[0];
+                //    let output = null;
+                //    if(from.outputs !== null){
+                //        output = from.outputs.filter(o => {return o.links !== null}).filter(o => {return o.links.includes(link[0])})[0]
+                //    }
 
-                    console.log('MATCH NODE')
-                    console.log(match_node)
+                //    console.log(from)
 
-                    console.log(match)
-                    console.log(match_node.outputs[0].links)
+                //    console.log(`FROM => ${from.type} -> ${output.type} : ${output.name}`)
+                //    console.log(this.nodes.filter(node => { return node.name == from.type.split('/')[1] })[0].onServerExecute)
+                //    let to = nodes.nodes.filter(node => { return node.id == link[3] })[0];
+                //    let input = to.inputs[link[4]];
+                //    console.log(`TO => ${to.type} -> ${input.type} : ${input.name} : ${input.link}`)
 
-                    console.log('NEXT NODE')
-                    console.log(next_node)
-                    let IVR_ID  = Math.floor(Math.random() * 1000000000);
-                    this.VOIP.IVRManager.addIVR({
-                        name: next_node.widgets_values[0],
-                    })
-                        
-                    this.VOIP.Router.addRoute({
-                        name: next_node.widgets_values[0],
-                        type: next_node.type,
-                        match: match,
-                        endpoint: next_node.widgets_values[0],
-                    })
+                //    //this.VOIP.Router.addRoute({})
 
-
-                    //nodes.links.forEach(link => {
-                    //    let from = nodes.nodes.filter(node => { return node.id == link[1] })[0];
-                    //    let output = null;
-                    //    if(from.outputs !== null){
-                    //        output = from.outputs.filter(o => {return o.links !== null}).filter(o => {return o.links.includes(link[0])})[0]
-                    //    }
-//
-                    //    console.log(from)
-//
-                    //    console.log(`FROM => ${from.type} -> ${output.type} : ${output.name}`)
-                    //    console.log(this.nodes.filter(node => { return node.name == from.type.split('/')[1] })[0].onServerExecute)
-                    //    let to = nodes.nodes.filter(node => { return node.id == link[3] })[0];
-                    //    let input = to.inputs[link[4]];
-                    //    console.log(`TO => ${to.type} -> ${input.type} : ${input.name} : ${input.link}`)
-//
-                    //    //this.VOIP.Router.addRoute({})
-//
-                    //})
-                }
-            })
+                //})
+            }
+        })
     }
     
     init_VOIP(){
@@ -239,12 +231,6 @@ class FlowPBX {
             },
         },
         (d) => {
-            console.log('')
-            console.log('VOIP EVENT')
-            console.log(d)
-            console.log('')
-
-
             if(d.message !== undefined){
                 let parsed_headers = SIP.Parser.ParseHeaders(d.message.headers);
                 if(d.type == 'REGISTER'){
@@ -253,7 +239,6 @@ class FlowPBX {
                         console.log(response)
                     })
                 }else if(d.type == 'INVITE'){
-                    console.log('SENDING TO INVITE TO UAS')
                     this.VOIP.uas_handle_invite(d.message, (response) => {
                         console.log('response')
                         console.log(response)
@@ -268,7 +253,7 @@ class FlowPBX {
                     }), parsed_headers.Contact.contact.ip, parsed_headers.Contact.contact.port)
                 }else{
                     console.log('UNKNOWN MESSAGE')
-                    console.log(d)
+                    //console.log(d)
                 }
             }
         })
