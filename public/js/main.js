@@ -33,6 +33,7 @@ class APP{
                 'sip_debug': this.SipUACSView,
                 'dashboard': this.Dashboard,
             }
+
             this.DataManager = {
                 extensions: await this.api.get_data({table: 'extensions', query: {}}),
                 routes: await this.api.get_data({table: 'routes', query: {}}),

@@ -244,6 +244,11 @@ class FlowPBX {
                         console.log(response)
                     })
                     
+                }else if(d.type == 'SUBSCRIBE'){
+                    this.VOIP.uas_handle_subscribe(d.message, (response) => {
+                        console.log('response')
+                        console.log(response)
+                    })
                 }else if(d.type == 'BYE'){
                     this.VOIP.server_send(this.VOIP.response({
                         isResponse: true,
